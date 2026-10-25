@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Tropiciel Pod Wodą</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: radial-gradient(ellipse at center, #0a2a4a 0%, #030f1e 100%);
+  font-family: system-ui, sans-serif;
+  color: #fff;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#app { width:960px; max-width:100vw; position:relative; }
+
+/* SCREENS */
+.screen { display:none; }
+.screen.active { display:block; }
+
+/* MENU */
+#menuScreen {
+  text-align: center;
+  padding: 40px 20px;
+}
+#menuScreen h1 {
+  font-size: 3em;
+  color: #38d8f8;
+  text-shadow: 0 0 30px #38d8f8, 0 0 60px #1090c0;
+  margin-bottom: 8px;
+}
+#menuScreen .subtitle {
+  color: #80d4f0;
+  font-size: 1.2em;
+  margin-bottom: 40px;
+}
+.zone-cards {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+.zone-card {
+  width: 220px;
+  padding: 24px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.3s;
+  background: rgba(255,255,255,0.07);
+}
+.zone-card:hover {
+  border-color: #38d8f8;
+  box-shadow: 0 0 20px rgba(56,216,248,0.4);
+  transform: translateY(-4px);
+}
+.zone-card .zone-icon { font-size: 3em; margin-bottom: 10px; }
+.zone-card h2 { font-size: 1.3em; color: #38d8f8; margin-bottom: 6px; }
+.zone-card p { font-size: 0.85em; color: #aaddee; }
+.zone-card.arctic { background: linear-gradient(135deg, rgba(0,80,160,0.4), rgba(0,40,80,0.6)); }
+.zone-card.cave { background: linear-gradient(135deg, rgba(10,0,40,0.6), rgba(30,0,60,0.4)); }
+.menu-buttons { display:flex; gap:16px; justify-content:center; margin-bottom:20px; }
+.btn {
+  padding: 12px 28px;
+  border-radius: 30px;
+  border: 2px solid #38d8f8;
+  background: transparent;
+  color: #38d8f8;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:hover { background: #38d8f8; color: #000; }
+.btn.primary { background: #38d8f8; color: #000; }
+.btn.primary:hover { background: #80eeff; }
+.sub-selector {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.sub-card {
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 2px solid #334;
+  background: rgba(255,255,255,0.05);
+  transition: all 0.2s;
+  min-width: 140px;
+}
+.sub-card.selected { border-color: #38d8f8; background: rgba(56,216,248,0.1); }
+.sub-card.locked { opacity: 0.4; cursor: not-allowed; }
+.sub-card h3 { font-size:0.95em; color:#38d8f8; }
+.sub-card p { font-size:0.75em; color:#889; }
+.settings-row { margin-top:16px; color:#8899aa; font-size:0.9em; }
+.settings-row select {
+  background: #0a2a4a;
+  color: #38d8f8;
+  border: 1px solid #38d8f8;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* ALBUM */
+#albumScreen {
+  padding: 20px;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+#albumScreen h1 { color:#38d8f8; text-align:center; margin-bottom:16px; }
+.album-tabs { display:flex; gap:8px; justify-content:center; margin-bottom:20px; }
+.tab-btn {
+  padding: 8px 24px;
+  border-radius: 20px;
+  border: 2px solid #334;
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-btn.active { border-color:#38d8f8; color:#38d8f8; background:rgba(56,216,248,0.1); }
+.album-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.album-card {
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid #223;
+  background: rgba(0,0,0,0.3);
+  text-align: center;
+  transition: all 0.2s;
+}
+.album-card.found {
+  border-color: #38d8f8;
+  background: rgba(56,216,248,0.08);
+  cursor: pointer;
+}
+.album-card .card-emoji { font-size:2.5em; filter:grayscale(1) brightness(0.3); }
+.album-card.found .card-emoji { filter:none; }
+.album-card h3 { font-size:0.9em; margin-top:6px; color:#667; }
+.album-card.found h3 { color:#cef; }
+.album-card .card-fact { font-size:0.75em; color:#556; margin-top:4px; display:none; }
+.album-card.found .card-fact { display:block; color:#8aacbb; }
+.album-stats { text-align:center; color:#38d8f8; margin-bottom:16px; font-size:1.1em; }
+.album-back { text-align:center; }
+
+/* GAME CANVAS */
+#gameScreen canvas {
+  display: block;
+  border-radius: 8px;
+  outline: none;
+}
+
+/* D-PAD */
+#dpad {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 130px;
+  height: 130px;
+  z-index: 100;
+}
+#dpad button {
+  position: absolute;
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  border: 2px solid rgba(56,216,248,0.5);
+  background: rgba(56,216,248,0.15);
+  color: #38d8f8;
+  font-size: 1.2em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+#dpad button[data-k="ArrowUp"]    { top:0;    left:45px; }
+#dpad button[data-k="ArrowDown"]  { bottom:0; left:45px; }
+#dpad button[data-k="ArrowLeft"]  { top:45px; left:0;    }
+#dpad button[data-k="ArrowRight"] { top:45px; right:0;   }
+@media (pointer:coarse) { #dpad { display:block; } }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- MENU SCREEN -->
+<div id="menuScreen" class="screen active">
+  <h1>🌊 Tropiciel Pod Wodą</h1>
+  <p class="subtitle">Odkryj tajemnice podwodnego świata!</p>
+
+  <div class="zone-cards">
+    <div class="zone-card arctic" onclick="startGame('arktyka')">
+      <div class="zone-icon">🧊</div>
+      <h2>Arktyka</h2>
+      <p>8 zwierząt do odkrycia<br>Lodowe wody Arktyki</p>
+    </div>
+    <div class="zone-card cave" onclick="startGame('jaskinia')">
+      <div class="zone-icon">🫧</div>
+      <h2>Jaskinia Lodowa</h2>
+      <p>4 zwierzęta do odkrycia<br>Mroczna głębina</p>
+    </div>
+  </div>
+
+  <p style="color:#38d8f8;margin-bottom:12px;font-size:0.95em">Wybierz łódkę:</p>
+  <div class="sub-selector" id="subSelector"></div>
+
+  <div class="menu-buttons">
+    <button class="btn" onclick="showAlbum()">📖 Album</button>
+    <button class="btn" onclick="resetProgress()">🔄 Reset</button>
+  </div>
+
+  <div class="settings-row">
+    🔊 Głos: <select id="voiceSelect" onchange="changeVoice()"></select>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="screen">
+  <canvas id="gameCanvas" width="960" height="540" tabindex="0"></canvas>
+</div>
+
+<!-- ALBUM SCREEN -->
+<div id="albumScreen" class="screen">
+  <h1>📖 Album Odkryć</h1>
+  <div class="album-tabs">
+    <button class="tab-btn active" onclick="showAlbumZone('arktyka',this)">🧊 Arktyka</button>
+    <button class="tab-btn" onclick="showAlbumZone('jaskinia',this)">🕳️ Jaskinia</button>
+  </div>
+  <div class="album-stats" id="albumStats"></div>
+  <div class="album-grid" id="albumGrid"></div>
+  <div class="album-back">
+    <button class="btn" onclick="showMenu()">← Menu</button>
+  </div>
+</div>
+
+</div>
+
+<!-- D-PAD (touch devices) -->
+<div id="dpad">
+  <button data-k="ArrowUp">↑</button>
+  <button data-k="ArrowLeft">←</button>
+  <button data-k="ArrowRight">→</button>
+  <button data-k="ArrowDown">↓</button>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════════
+// DATA — submarines
+// ═══════════════════════════════════════════════════════════════
+
+const LODKI = [
+  { id:'zolta',     nazwa:'Żółta Łódka',         odblokuj:0, reflektor:false,
+    kolor1:'#f5d030', kolor2:'#c8a000', zasieg:180 },
+  { id:'reflektor', nazwa:'Łódź z Reflektorem',  odblokuj:5, reflektor:true,
+    kolor1:'#50b8f8', kolor2:'#1880c0', zasieg:280 }
+];
+
+// ═══════════════════════════════════════════════════════════════
+// DATA — animals
+// ═══════════════════════════════════════════════════════════════
+
+const ZWIERZETA = {
+  arktyka: [
+    { id:'wieloryb',  nazwa:'Wieloryb Grenlandzki',  wx:600,  wy:220,
+      ciekawostka:'Wieloryby grenlandzkie mogą żyć ponad 200 lat! To jedne z najdłużej żyjących ssaków na Ziemi.',
+      kolor:'#334466', rozmiar:90, phase:0 },
+    { id:'narwal',    nazwa:'Narwal',                wx:700,  wy:180,
+      ciekawostka:'Narwal ma spiralny ząb który może rosnąć do 3 metrów! Dlatego nazywany jest jednorożcem morza.',
+      kolor:'#7a8899', rozmiar:65, phase:1.1 },
+    { id:'mors',      nazwa:'Morś',                  wx:1100, wy:320,
+      ciekawostka:'Morsy używają swoich długich kłów do wspinania się na lód i do walki z wrogami.',
+      kolor:'#8B6854', rozmiar:55, phase:2.3 },
+    { id:'foka',      nazwa:'Foka Obrączkowana',     wx:1600, wy:280,
+      ciekawostka:'Foki obrączkowane potrafią nurkować na głębokość 300 metrów i zatrzymać oddech na 45 minut!',
+      kolor:'#888877', rozmiar:45, phase:0.7 },
+    { id:'beluga',    nazwa:'Beluga',                wx:2000, wy:200,
+      ciekawostka:'Beluga to jeden z niewielu wielorybów który potrafi cofać! Może też obracać głowę na boki.',
+      kolor:'#e8e8e8', rozmiar:70, phase:1.8 },
+    { id:'osmornica', nazwa:'Ośmiornica Arktyczna',  wx:1800, wy:350,
+      ciekawostka:'Ośmiornice arktyczne mogą zmieniać kolor skóry w ciągu ułamka sekundy, żeby ukryć się przed wrogami.',
+      kolor:'#cc6644', rozmiar:50, phase:3.1 },
+    { id:'niedzwiedz',nazwa:'Niedźwiedź Polarny',    wx:2500, wy:240,
+      ciekawostka:'Niedźwiedzie polarne są świetnymi pływakami i mogą przepłynąć setki kilometrów w zimnej wodzie.',
+      kolor:'#f0eeea', rozmiar:60, phase:0.4 },
+    { id:'dorsz',     nazwa:'Dorsz Arktyczny',       wx:3200, wy:300,
+      ciekawostka:'Dorsz arktyczny produkuje specjalne białko przeciw zamarzaniu, które chroni go w lodowatej wodzie.',
+      kolor:'#7799aa', rozmiar:40, phase:2.0 }
+  ],
+  jaskinia: [
+    { id:'kalamarsnica', nazwa:'Kałamarnica Olbrzymia', wx:500,  wy:280,
+      ciekawostka:'Kałamarnica olbrzymia ma największe oczy w świecie zwierząt — wielkie jak piłka do koszykówki!',
+      kolor:'#cc3355', rozmiar:80, phase:0 },
+    { id:'wedkarz',      nazwa:'Ryba Wędkarz',          wx:1200, wy:320,
+      ciekawostka:'Ryba wędkarz ma świecącą przynętę na głowie — to żywa lampa którą wabi ofiary w ciemnościach.',
+      kolor:'#445566', rozmiar:55, phase:1.5 },
+    { id:'krab',         nazwa:'Krab Pająk',            wx:2000, wy:400,
+      ciekawostka:'Krab pająk japoński jest największym stawonogiem na Ziemi — jego nogi rozpostarte mają 3.8 metra!',
+      kolor:'#994422', rozmiar:60, phase:2.2 },
+    { id:'meduza',       nazwa:'Meduza Świecąca',       wx:2800, wy:220,
+      ciekawostka:'Meduzy nie mają mózgu, serca ani krwi! Ich ciało składa się w 95 procentach z wody.',
+      kolor:'#8844cc', rozmiar:55, phase:0.9 }
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════════
+// DATA — zone config
+// ═══════════════════════════════════════════════════════════════
+
+const ZONE_INFO = {
+  arktyka: {
+    nazwa:      'Arktyka',
+    noc:        false,
+    intro:      'Witaj w Arktyce! Zbadaj lodowate wody i odkryj 8 wyjątkowych zwierząt!',
+    waterTop:   '#0066bb',
+    waterBot:   '#003366',
+    fogColor:   'rgba(2,20,50,0.72)',
+    floorColor: '#8899aa',
+    floorColor2:'#aabbcc'
+  },
+  jaskinia: {
+    nazwa:      'Jaskinia Lodowa',
+    noc:        true,
+    intro:      'Witaj w Jaskini Lodowej! Uważaj na ciemność i szukaj 4 bioluminescencyjnych stworzeń!',
+    waterTop:   '#020816',
+    waterBot:   '#000308',
+    fogColor:   'rgba(0,3,10,0.96)',
+    floorColor: '#1a1a2e',
+    floorColor2:'#16213e'
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// PROGRESS / SAVE
+// ═══════════════════════════════════════════════════════════════
+
+const SAVE_KEY = 'tropiciel-podwodny-v2';
+let progress = { found:{}, sub:0 };
+
+function loadProgress() {
+  try { const d = localStorage.getItem(SAVE_KEY); if (d) progress = JSON.parse(d); } catch(e) {}
+}
+function saveProgress() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); } catch(e) {}
+}
+function totalFound() { return Object.keys(progress.found).length; }
+
+loadProgress();
+
+// ═══════════════════════════════════════════════════════════════
+// TTS
+// ═══════════════════════════════════════════════════════════════
+
+const synth = window.speechSynthesis;
+let glosPL  = null;
+let voiceList = [];
+
+function initVoices() {
+  voiceList = synth.getVoices();
+  if (!voiceList.length) return;
+  const pl = voiceList.filter(v => v.lang && v.lang.startsWith('pl'));
+  glosPL = pl.find(v => v.name.includes('Google')) || pl[0] || voiceList[0] || null;
+  populateVoiceSelect();
+}
+if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = initVoices;
+setTimeout(initVoices, 100);
+setTimeout(initVoices, 800);
+
+function populateVoiceSelect() {
+  const sel = document.getElementById('voiceSelect');
+  if (!sel) return;
+  sel.innerHTML = '';
+  voiceList.forEach((v, i) => {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = v.name + ' (' + v.lang + ')';
+    if (v === glosPL) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+function changeVoice() {
+  const sel = document.getElementById('voiceSelect');
+  glosPL = voiceList[parseInt(sel.value)] || glosPL;
+}
+function mow(tekst) {
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(tekst);
+  if (glosPL) u.voice = glosPL;
+  u.lang = 'pl-PL';
+  u.rate = 0.92;
+  synth.speak(u);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showMenu() {
+  synth.cancel();
+  stopGame();
+  buildSubSelector();
+  showScreen('menuScreen');
+}
+function showAlbum() {
+  showScreen('albumScreen');
+  showAlbumZone('arktyka', document.querySelector('.tab-btn'));
+}
+function resetProgress() {
+  if (confirm('Zresetować cały postęp?')) {
+    progress = { found:{}, sub:0 };
+    saveProgress();
+    buildSubSelector();
+    alert('Postęp zresetowany!');
+  }
+}
+
+let selectedSub = 0;
+
+function buildSubSelector() {
+  const container = document.getElementById('subSelector');
+  if (!container) return;
+  container.innerHTML = '';
+  LODKI.forEach((lodka, i) => {
+    const div = document.createElement('div');
+    const unlocked = totalFound() >= lodka.odblokuj;
+    div.className = 'sub-card' +
+      (selectedSub === i ? ' selected' : '') +
+      (!unlocked ? ' locked' : '');
+    div.innerHTML =
+      '<h3>' + lodka.nazwa + '</h3><p>' +
+      (unlocked
+        ? 'Zasięg wzroku: ' + lodka.zasieg
+        : '🔒 Odblokuj odkrywając ' + lodka.odblokuj + ' zwierząt') +
+      '</p>';
+    if (unlocked) div.onclick = () => { selectedSub = i; buildSubSelector(); };
+    container.appendChild(div);
+  });
+}
+
+function showAlbumZone(zone, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const animals    = ZWIERZETA[zone];
+  const grid       = document.getElementById('albumGrid');
+  const stats      = document.getElementById('albumStats');
+  const foundCount = animals.filter(a => progress.found[a.id]).length;
+  stats.textContent = 'Odkryto: ' + foundCount + ' / ' + animals.length;
+  grid.innerHTML = '';
+  animals.forEach(a => {
+    const found = !!progress.found[a.id];
+    const card  = document.createElement('div');
+    card.className = 'album-card' + (found ? ' found' : '');
+    card.innerHTML =
+      '<div class="card-emoji">' + (found ? getEmoji(a.id) : '❓') + '</div>' +
+      '<h3>' + (found ? a.nazwa : '???') + '</h3>' +
+      '<div class="card-fact">' + (found ? a.ciekawostka : '') + '</div>';
+    if (found) card.onclick = () => mow(a.nazwa + '. ' + a.ciekawostka);
+    grid.appendChild(card);
+  });
+}
+
+function getEmoji(id) {
+  const em = {
+    wieloryb:'🐋', narwal:'🦄', mors:'🦭', foka:'🐋',
+    beluga:'🐳', osmornica:'🐙', niedzwiedz:'🐻‍❄️', dorsz:'🐟',
+    kalamarsnica:'🦑', wedkarz:'🐡', krab:'🦀', meduza:'🪼'
+  };
+  return em[id] || '🐠';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CANVAS SETUP
+// ═══════════════════════════════════════════════════════════════
+
+const canvas  = document.getElementById('gameCanvas');
+const ctx     = canvas.getContext('2d');
+const W = 960, H = 540;
+const WORLD_W = 4000, WORLD_H = 600;
+
+// Offscreen canvas for fog-of-war compositing
+const fogCv  = document.createElement('canvas');
+fogCv.width  = W; fogCv.height = H;
+const fogCtx = fogCv.getContext('2d');
+
+// ═══════════════════════════════════════════════════════════════
+// PHYSICS CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+
+const ACCEL = 0.55, DRAG = 0.87, MAXV = 5.5;
+
+// ═══════════════════════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════════════════════
+
+let sub = { wx:200, wy:260, vx:0, vy:0, dir:1, tilt:0 };
+let cam = { x:0, y:0 };
+let keys = {};
+let bubbles    = [];
+let particles  = [];
+let kelp       = [];
+let gameAnimId = null;
+let t          = 0;
+let frameCount = 0;
+let lastTime   = 0;
+let currentZone      = null;
+let currentZoneAnimals = [];
+let popup      = null;
+
+// ═══════════════════════════════════════════════════════════════
+// TERRAIN FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function floorAt(x) {
+  return 520 + Math.sin(x/800)*60 + Math.sin(x/300)*30 + Math.sin(x/100)*12;
+}
+function ceilAt(x) {
+  return 30 + Math.sin(x/600+1.2)*40 + Math.sin(x/200+2.1)*20;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PARTICLES
+// ═══════════════════════════════════════════════════════════════
+
+function addBubble(wx, wy) {
+  bubbles.push({ wx, wy, r:1+Math.random()*2.5, vx:(Math.random()-.5)*.3, vy:-.4-.5*Math.random(), life:1 });
+}
+function addGlow(wx, wy, color) {
+  particles.push({ wx, wy, color, r:2+Math.random()*4, life:1, vx:(Math.random()-.5)*.5, vy:(Math.random()-.5)*.5 });
+}
+function updateParticles() {
+  for (let i = bubbles.length-1; i >= 0; i--) {
+    const b = bubbles[i];
+    b.wy += b.vy; b.wx += b.vx; b.life -= 0.008;
+    if (b.life <= 0 || b.wy < 0) bubbles.splice(i,1);
+  }
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i];
+    p.wx += p.vx; p.wy += p.vy; p.life -= 0.013;
+    if (p.life <= 0) particles.splice(i,1);
+  }
+}
+function drawBubbles() {
+  bubbles.forEach(b => {
+    const sx = b.wx - cam.x, sy = b.wy - cam.y;
+    if (sx < -10 || sx > W+10 || sy < -10 || sy > H+10) return;
+    ctx.save();
+    ctx.globalAlpha = b.life * 0.7;
+    ctx.strokeStyle = 'rgba(180,240,255,0.8)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(sx, sy, b.r, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = 'rgba(220,250,255,0.15)';
+    ctx.fill();
+    ctx.restore();
+  });
+}
+function drawGlowParticles() {
+  particles.forEach(p => {
+    const sx = p.wx - cam.x, sy = p.wy - cam.y;
+    if (sx < -40 || sx > W+40 || sy < -40 || sy > H+40) return;
+    ctx.save();
+    ctx.globalAlpha = p.life * 0.8;
+    const g = ctx.createRadialGradient(sx,sy,0, sx,sy,p.r*6);
+    g.addColorStop(0, p.color);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(sx,sy,p.r*6,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// KELP / CORAL
+// ═══════════════════════════════════════════════════════════════
+
+function generateKelp(zone) {
+  kelp = [];
+  for (let x = 100; x < WORLD_W; x += 60 + Math.random()*80) {
+    kelp.push({
+      wx: x + Math.random()*30 - 15,
+      wy: floorAt(x),
+      height:   30 + Math.random()*60,
+      segments: 4 + Math.floor(Math.random()*4),
+      phase:    Math.random()*Math.PI*2,
+      color:    zone.noc
+        ? 'hsl('+(200+Math.random()*60)+',80%,'+(20+Math.random()*20)+'%)'
+        : 'hsl('+(120+Math.random()*40)+','+(60+Math.random()*30)+'%,'+(30+Math.random()*20)+'%)'
+    });
+  }
+}
+
+function drawKelp() {
+  kelp.forEach(k => {
+    const sx = k.wx - cam.x, sy = k.wy - cam.y;
+    if (sx < -80 || sx > W+80) return;
+    ctx.save();
+    ctx.strokeStyle = k.color; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath();
+    let px = sx, py = sy;
+    for (let i = 0; i <= k.segments; i++) {
+      const frac = i / k.segments;
+      const sway = Math.sin(t*1.2 + k.phase + frac*1.5) * (frac*12);
+      const nx = sx + sway, ny = sy - k.height*frac;
+      if (i === 0) ctx.moveTo(nx, ny);
+      else ctx.quadraticCurveTo(px+sway*.5, (py+ny)*.5, nx, ny);
+      px = nx; py = ny;
+    }
+    ctx.stroke();
+    // Leaf tip
+    const topSway = Math.sin(t*1.2+k.phase+1.5)*12;
+    ctx.fillStyle = k.color;
+    ctx.beginPath();
+    ctx.ellipse(sx+topSway, sy-k.height, 5, 10, topSway*0.05, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BACKGROUND LAYERS + PARALLAX
+// ═══════════════════════════════════════════════════════════════
+
+function drawBackground(zone) {
+  // Base water gradient
+  const grd = ctx.createLinearGradient(0,0,0,H);
+  grd.addColorStop(0, zone.waterTop);
+  grd.addColorStop(1, zone.waterBot);
+  ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
+
+  if (!zone.noc) drawSunRays();
+
+  // Layer 1 — slowest (0.1x)
+  ctx.save();
+  ctx.translate(-cam.x*0.1, 0);
+  drawDistantRocks(zone);
+  ctx.restore();
+
+  // Layer 2 — mid (0.3x)
+  ctx.save();
+  ctx.translate(-cam.x*0.3, -cam.y*0.1);
+  drawMidRocks(zone);
+  ctx.restore();
+
+  if (zone.noc) {
+    if (Math.random() < 0.04) {
+      addGlow(cam.x+Math.random()*W, cam.y+Math.random()*H,
+        'hsla('+(200+Math.random()*160)+',100%,70%,0.8)');
+    }
+    drawGlowParticles();
+  }
+}
+
+function drawSunRays() {
+  ctx.save(); ctx.globalAlpha = 0.07;
+  for (let i = 0; i < 8; i++) {
+    const x0 = W*i/8 + Math.sin(t*0.3+i)*30;
+    const sp = 80 + i*10;
+    const g = ctx.createLinearGradient(x0,0,x0+sp*0.3,H*0.8);
+    g.addColorStop(0,'rgba(180,240,255,0.6)'); g.addColorStop(1,'rgba(180,240,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(x0,0); ctx.lineTo(x0+sp,H*0.8); ctx.lineTo(x0-sp*0.3,H*0.8); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawDistantRocks(zone) {
+  ctx.fillStyle = zone.noc ? '#080820' : '#1a3a5a';
+  for (let i = 0; i < 12; i++) {
+    const rw = 200+Math.sin(i*1.3)*80, rh = 80+Math.sin(i*2.1)*40;
+    ctx.beginPath(); ctx.ellipse(i*400, H-rh+30, rw, rh, 0, 0, Math.PI*2); ctx.fill();
+  }
+}
+function drawMidRocks(zone) {
+  ctx.fillStyle = zone.noc ? '#0a0a25' : '#1e4870';
+  for (let i = 0; i < 15; i++) {
+    const rx = i*320+50, rw = 80+Math.sin(i*1.7)*40, rh = 60+Math.sin(i*2.5)*25;
+    ctx.beginPath(); ctx.moveTo(rx-rw,H-rh+20); ctx.quadraticCurveTo(rx,H-rh*2.5+20,rx+rw,H-rh+20); ctx.closePath(); ctx.fill();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TERRAIN DRAWING
+// ═══════════════════════════════════════════════════════════════
+
+function drawTerrain(zone) {
+  ctx.save();
+  ctx.translate(-cam.x, -cam.y);
+
+  if (zone.noc) {
+    // Cave ceiling block
+    const cg = ctx.createLinearGradient(0,0,0,80);
+    cg.addColorStop(0,'#0a0018'); cg.addColorStop(1,'#1a0838');
+    ctx.fillStyle = cg;
+    ctx.beginPath(); ctx.moveTo(0,0);
+    for (let x = 0; x <= WORLD_W; x += 20) ctx.lineTo(x, ceilAt(x));
+    ctx.lineTo(WORLD_W,0); ctx.closePath(); ctx.fill();
+    // Stalactites
+    ctx.fillStyle = '#12082a';
+    for (let x = 50; x < WORLD_W; x += 80+Math.abs(Math.sin(x*0.003))*40) {
+      const by = ceilAt(x), h = 20+Math.abs(Math.sin(x*0.05))*30;
+      ctx.beginPath(); ctx.moveTo(x-12,by); ctx.lineTo(x,by+h); ctx.lineTo(x+12,by); ctx.closePath(); ctx.fill();
+    }
+  } else {
+    // Arctic ice ceiling
+    ctx.fillStyle = 'rgba(200,235,255,0.35)';
+    ctx.beginPath(); ctx.moveTo(0,0);
+    for (let x = 0; x <= WORLD_W; x += 30) {
+      ctx.lineTo(x, 15+Math.abs(Math.sin(x*0.02))*25+Math.abs(Math.sin(x*0.07))*10);
+    }
+    ctx.lineTo(WORLD_W,0); ctx.closePath(); ctx.fill();
+    // Ice chunks
+    ctx.fillStyle = 'rgba(210,240,255,0.5)';
+    for (let x = 100; x < WORLD_W; x += 300+Math.abs(Math.sin(x*0.001))*100) {
+      const h = 25+Math.abs(Math.sin(x*0.03))*20;
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+40,0); ctx.lineTo(x+50,h);
+      ctx.lineTo(x+20,h+15); ctx.lineTo(x-10,h); ctx.closePath(); ctx.fill();
+    }
+  }
+
+  // Floor
+  const fg = ctx.createLinearGradient(0,440,0,650);
+  fg.addColorStop(0, zone.floorColor); fg.addColorStop(1, zone.floorColor2);
+  ctx.fillStyle = fg;
+  ctx.beginPath(); ctx.moveTo(0,WORLD_H);
+  for (let x = 0; x <= WORLD_W; x += 15) ctx.lineTo(x, floorAt(x));
+  ctx.lineTo(WORLD_W,WORLD_H); ctx.closePath(); ctx.fill();
+
+  // Floor pebbles / stones
+  ctx.fillStyle = zone.noc ? '#0d0d20' : '#6688aa';
+  for (let x = 20; x < WORLD_W; x += 120+Math.abs(Math.sin(x*0.01))*60) {
+    const fy = floorAt(x);
+    ctx.beginPath();
+    ctx.ellipse(x, fy-4, 8+Math.abs(Math.sin(x*0.1))*12, 5+Math.abs(Math.sin(x*0.17))*6, Math.sin(x*0.1), 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ANIMAL DRAWING — dispatcher
+// ═══════════════════════════════════════════════════════════════
+
+function drawAnimal(animal, sx, sy, found, zone) {
+  ctx.save();
+  ctx.translate(sx, sy);
+  if (zone && zone.noc && found) { ctx.shadowColor = animal.kolor; ctx.shadowBlur = 22; }
+  switch (animal.id) {
+    case 'wieloryb':     drawWieloryb(animal.rozmiar,  animal.kolor); break;
+    case 'narwal':       drawNarwal(animal.rozmiar,    animal.kolor); break;
+    case 'mors':         drawMors(animal.rozmiar,      animal.kolor); break;
+    case 'foka':         drawFoka(animal.rozmiar,      animal.kolor); break;
+    case 'beluga':       drawBeluga(animal.rozmiar,    animal.kolor); break;
+    case 'osmornica':    drawOsmornica(animal.rozmiar, animal.kolor); break;
+    case 'niedzwiedz':   drawNiedzwiedz(animal.rozmiar,animal.kolor); break;
+    case 'dorsz':        drawDorsz(animal.rozmiar,     animal.kolor); break;
+    case 'kalamarsnica': drawKalamarsnica(animal.rozmiar,animal.kolor); break;
+    case 'wedkarz':      drawWedkarz(animal.rozmiar,   animal.kolor); break;
+    case 'krab':         drawKrab(animal.rozmiar,      animal.kolor); break;
+    case 'meduza':       drawMeduza(animal.rozmiar,    animal.kolor, t + animal.phase); break;
+    default:             drawGenericFish(animal.rozmiar,animal.kolor); break;
+  }
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+// ── individual animal shapes ──────────────────────────────────
+
+function drawWieloryb(r, c) {
+  const sc = r/90; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,0,85,30,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(65,5,35,25,0.2,0,Math.PI*2); ctx.fill();
+  // Tail flukes
+  ctx.beginPath(); ctx.moveTo(-75,0); ctx.lineTo(-95,-25); ctx.lineTo(-85,-5); ctx.lineTo(-95,25); ctx.lineTo(-75,0); ctx.fill();
+  // Belly
+  ctx.fillStyle = '#aabbcc';
+  ctx.beginPath(); ctx.ellipse(20,10,50,15,0,0,Math.PI*2); ctx.fill();
+  // Flipper
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.moveTo(20,18); ctx.lineTo(2,44); ctx.lineTo(35,32); ctx.closePath(); ctx.fill();
+  // Eye
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(55,-2,6,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(57,-1,3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(58,-2,1,0,Math.PI*2); ctx.fill();
+}
+
+function drawNarwal(r, c) {
+  const sc = r/65; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,0,55,18,0,0,Math.PI*2); ctx.fill();
+  // Horn
+  ctx.strokeStyle = '#ccccdd'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(50,-5); ctx.lineTo(110,-25); ctx.stroke();
+  ctx.lineWidth = 1.5; ctx.strokeStyle = '#aaaacc';
+  for (let i = 0; i < 5; i++) {
+    const f = i/5, x1=50+f*60, y1=-5-f*20;
+    ctx.beginPath(); ctx.arc(x1,y1,3,0,Math.PI); ctx.stroke();
+  }
+  // Tail
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.moveTo(-50,0); ctx.lineTo(-70,-20); ctx.lineTo(-60,0); ctx.lineTo(-70,20); ctx.closePath(); ctx.fill();
+  // Spots
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  for (let i=0;i<5;i++) { ctx.beginPath(); ctx.arc(-10+i*12,Math.sin(i)*5,3,0,Math.PI*2); ctx.fill(); }
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(40,-3,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(41,-4,1.5,0,Math.PI*2); ctx.fill();
+}
+
+function drawMors(r, c) {
+  const sc = r/55; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,5,45,22,0.1,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(35,-5,22,18,-0.3,0,Math.PI*2); ctx.fill();
+  // Tusks
+  ctx.strokeStyle = '#fffaec'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(40,5); ctx.lineTo(48,25); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(32,5); ctx.lineTo(28,26); ctx.stroke();
+  // Flipper
+  ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(-30,15,20,8,0.5,0,Math.PI*2); ctx.fill();
+  // Whiskers
+  ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1;
+  for (let i=0;i<4;i++) {
+    ctx.beginPath(); ctx.moveTo(42,-3+i*3); ctx.lineTo(58,-5+i*3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(42,-3+i*3); ctx.lineTo(58,-1+i*3); ctx.stroke();
+  }
+  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(42,-8,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(43,-9,1.5,0,Math.PI*2); ctx.fill();
+}
+
+function drawFoka(r, c) {
+  const sc = r/45; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,0,38,15,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(28,-3,14,11,-0.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-35,0); ctx.lineTo(-50,-12); ctx.lineTo(-42,0); ctx.lineTo(-50,12); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(10,12,12,5,0.4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  for (let i=0;i<6;i++) { ctx.beginPath(); ctx.arc(-15+i*10,Math.sin(i*1.3)*5,2.5,0,Math.PI*2); ctx.fill(); }
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(36,-5,3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(37,-6,1.2,0,Math.PI*2); ctx.fill();
+}
+
+function drawBeluga(r, c) {
+  const sc = r/70; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,0,60,22,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(52,-3,22,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-58,0); ctx.lineTo(-80,-18); ctx.lineTo(-68,0); ctx.lineTo(-80,18); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(10,18,18,7,0.4,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#bbb'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(58,6,10,0.2,Math.PI-0.2); ctx.stroke();
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(58,-5,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(59,-6,1.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(200,200,200,0.3)';
+  ctx.beginPath(); ctx.ellipse(0,-8,40,8,0,0,Math.PI*2); ctx.fill();
+}
+
+function drawOsmornica(r, c) {
+  const sc = r/50; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,-15,22,28,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  for (let i=0;i<6;i++) { ctx.beginPath(); ctx.arc(-8+(i%3)*8,-22+Math.floor(i/3)*10,3,0,Math.PI*2); ctx.fill(); }
+  for (let i=0;i<8;i++) {
+    const angle = i/8*Math.PI*2;
+    const wave  = Math.sin(t*2+i*0.8)*8;
+    ctx.strokeStyle = c; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    const sx2 = Math.cos(angle)*15, sy2 = 5+Math.sin(angle)*8;
+    const mx  = Math.cos(angle)*28+wave, my = 15+Math.sin(angle)*15+wave;
+    const ex  = Math.cos(angle)*38+wave*1.5, ey = 32+Math.sin(angle)*22+wave*1.5;
+    ctx.beginPath(); ctx.moveTo(sx2,sy2); ctx.bezierCurveTo(mx,my,mx+5,my+8,ex,ey); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.arc((mx+ex)/2,(my+ey)/2,2,0,Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-8,-15,7,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(8,-15,7,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#220000';
+  ctx.beginPath(); ctx.arc(-7,-14,4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(9,-14,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-6,-15,1.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(10,-15,1.5,0,Math.PI*2); ctx.fill();
+}
+
+function drawNiedzwiedz(r, c) {
+  const sc = r/60; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,0,40,22,0.1,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(35,-5,20,18,-0.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(40,-20,8,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(28,-20,7,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ffddcc';
+  ctx.beginPath(); ctx.arc(40,-20,4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(28,-20,3.5,0,Math.PI*2); ctx.fill();
+  const ps = Math.sin(t*3)*10;
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(-20,18+ps,14,8,0.4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(10,18-ps,14,8,-0.4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#d0ccc8'; ctx.beginPath(); ctx.ellipse(48,-2,10,7,-0.1,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#555'; ctx.beginPath(); ctx.arc(50,-3,3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(40,-8,3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(41,-9,1,0,Math.PI*2); ctx.fill();
+}
+
+function drawDorsz(r, c) {
+  const sc = r/40; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,0,35,12,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-32,0); ctx.lineTo(-48,-15); ctx.lineTo(-42,0); ctx.lineTo(-48,15); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-10,-12); ctx.lineTo(0,-22); ctx.lineTo(15,-12); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-5,12); ctx.lineTo(5,20); ctx.lineTo(15,12); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = c; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(30,5); ctx.lineTo(35,12); ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1.5;
+  for (let i=0;i<4;i++) { ctx.beginPath(); ctx.moveTo(-15+i*10,-10); ctx.lineTo(-13+i*10,10); ctx.stroke(); }
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(20,-2,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(21,-2,2.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(22,-3,1,0,Math.PI*2); ctx.fill();
+}
+
+function drawKalamarsnica(r, c) {
+  const sc = r/80; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.moveTo(0,-50);
+  ctx.bezierCurveTo(25,-40,30,0,20,20);
+  ctx.bezierCurveTo(10,35,-10,35,-20,20);
+  ctx.bezierCurveTo(-30,0,-25,-40,0,-50);
+  ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0,-30,38,13,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,100,150,0.2)';
+  ctx.beginPath(); ctx.ellipse(-5,-20,10,20,0.2,0,Math.PI*2); ctx.fill();
+  for (let i=0;i<10;i++) {
+    const angle = i/10*Math.PI+Math.PI/2;
+    const wave  = Math.sin(t*2+i*0.6)*10;
+    const isLong = i===4||i===5;
+    ctx.strokeStyle = c; ctx.lineWidth = isLong?2:3; ctx.lineCap = 'round';
+    const sx2 = Math.cos(angle)*18, sy2 = 20+Math.sin(angle)*5;
+    const len  = isLong?70:42;
+    ctx.beginPath(); ctx.moveTo(sx2,sy2);
+    ctx.quadraticCurveTo(sx2+wave, sy2+len*0.5+wave, sx2+wave*1.5, sy2+len);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-14,5,13,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(14,5,13,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#001122';
+  ctx.beginPath(); ctx.arc(-13,6,9,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(15,6,9,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-10,3,3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(18,3,3,0,Math.PI*2); ctx.fill();
+}
+
+function drawWedkarz(r, c) {
+  const sc = r/55; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,5,30,28,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#223344'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(5,-22); ctx.bezierCurveTo(20,-35,22,-18,35,-33); ctx.stroke();
+  const lp = 0.6+Math.abs(Math.sin(t*3))*0.4;
+  ctx.shadowColor = '#88ffaa'; ctx.shadowBlur = 18*lp;
+  ctx.fillStyle = 'rgba(120,255,150,'+lp+')';
+  ctx.beginPath(); ctx.arc(35,-33,5,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#ddd';
+  for (let i=0;i<6;i++) {
+    ctx.beginPath(); ctx.moveTo(-18+i*7,-18); ctx.lineTo(-16+i*7,-8); ctx.lineTo(-14+i*7,-18); ctx.fill();
+  }
+  ctx.shadowColor = '#ffee00'; ctx.shadowBlur = 8;
+  ctx.fillStyle = '#ffee00';
+  ctx.beginPath(); ctx.arc(-10,-5,8,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(10,-5,8,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.arc(-10,-4,4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(10,-4,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(-25,10,12,6,-0.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(25,10,12,6,0.5,0,Math.PI*2); ctx.fill();
+}
+
+function drawKrab(r, c) {
+  const sc = r/60; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,0,32,22,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(0,0,22,14,0,0,Math.PI*2); ctx.stroke();
+  for (let side=-1;side<=1;side+=2) {
+    for (let j=0;j<4;j++) {
+      const bx = side*25, by = -8+j*6;
+      const wave = Math.sin(t*2+j*0.7+(side>0?1.5:0))*6;
+      ctx.strokeStyle = c; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(bx,by);
+      ctx.lineTo(bx+side*45+wave, by-18+wave);
+      ctx.lineTo(bx+side*75+wave*0.5, by+12+wave);
+      ctx.stroke();
+    }
+  }
+  [-1,1].forEach(side => {
+    const wave = Math.sin(t*1.5)*5*side;
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.ellipse(side*52,-18+wave,16,9,side*0.5,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(side*58,-28+wave,9,5,side*0.8,0,Math.PI*2); ctx.fill();
+  });
+  ctx.fillStyle = c;
+  ctx.fillRect(-15,-28,4,12); ctx.fillRect(11,-28,4,12);
+  ctx.fillStyle = '#111';
+  ctx.beginPath(); ctx.arc(-13,-28,5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(13,-28,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#888';
+  ctx.beginPath(); ctx.arc(-12,-29,2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(14,-29,2,0,Math.PI*2); ctx.fill();
+}
+
+function drawMeduza(r, c, timeOffset) {
+  const sc = r/55; ctx.scale(sc,sc);
+  const pulse = 0.8+Math.sin(timeOffset*2)*0.2;
+  ctx.fillStyle = c; ctx.globalAlpha = 0.7;
+  ctx.beginPath(); ctx.arc(0,0,32*pulse,Math.PI,0);
+  ctx.bezierCurveTo(32*pulse,18,-32*pulse,18,-32*pulse,0); ctx.fill();
+  const g2 = ctx.createRadialGradient(0,-5,0,0,-5,26*pulse);
+  g2.addColorStop(0,c); g2.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = g2; ctx.globalAlpha = 0.45;
+  ctx.beginPath(); ctx.arc(0,0,26*pulse,Math.PI,0);
+  ctx.bezierCurveTo(26*pulse,14,-26*pulse,14,-26*pulse,0); ctx.fill();
+  ctx.globalAlpha = 0.55; ctx.strokeStyle = c; ctx.lineWidth = 1.8;
+  for (let i=0;i<4;i++) {
+    const ox=-10+i*7, wave=Math.sin(timeOffset*1.8+i*1.2)*8;
+    ctx.beginPath(); ctx.moveTo(ox,14); ctx.quadraticCurveTo(ox+wave,30,ox+wave*0.8,46); ctx.stroke();
+  }
+  ctx.lineWidth = 1;
+  for (let i=0;i<10;i++) {
+    const tx = -28*pulse+i*(56*pulse/9);
+    const wave = Math.sin(timeOffset*1.5+i*0.8)*12;
+    ctx.beginPath(); ctx.moveTo(tx,16); ctx.bezierCurveTo(tx+wave,35,tx-wave,55,tx+wave*0.5,74); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawGenericFish(r, c) {
+  const sc = r/40; ctx.scale(sc,sc);
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(0,0,30,12,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-28,0); ctx.lineTo(-42,-14); ctx.lineTo(-38,0); ctx.lineTo(-42,14); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(18,-3,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(19,-3,2,0,Math.PI*2); ctx.fill();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUBMARINE DRAWING
+// ═══════════════════════════════════════════════════════════════
+
+function drawSub(sx, sy, dir, tilt, lodka) {
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(tilt);
+  ctx.scale(dir, 1);
+
+  // Spotlight cone (rendered before hull)
+  if (lodka.reflektor) {
+    const g = ctx.createRadialGradient(40,0,5, 40,0,160);
+    g.addColorStop(0,'rgba(200,240,255,0.22)'); g.addColorStop(1,'rgba(200,240,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(40,0); ctx.lineTo(200,-70); ctx.lineTo(200,70); ctx.closePath(); ctx.fill();
+  }
+
+  // Drop shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(3,8,43,10,0,0,Math.PI*2); ctx.fill();
+
+  // Hull
+  ctx.fillStyle = lodka.kolor1;
+  ctx.beginPath(); ctx.ellipse(0,0,40,18,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = lodka.kolor2; ctx.lineWidth = 2; ctx.stroke();
+
+  // Hull highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.beginPath(); ctx.ellipse(-5,-7,22,8,-0.2,0,Math.PI*2); ctx.fill();
+
+  // Conning tower
+  ctx.fillStyle = lodka.kolor2;
+  ctx.beginPath(); ctx.roundRect(-8,-26,16,15,[4,4,2,2]); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.beginPath(); ctx.roundRect(-6,-24,8,7,[3,3,1,1]); ctx.fill();
+
+  // Periscope
+  ctx.strokeStyle = lodka.kolor2; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0,-26); ctx.lineTo(0,-36); ctx.lineTo(10,-36); ctx.stroke();
+  ctx.fillStyle = '#88ccff'; ctx.beginPath(); ctx.arc(10,-36,3,0,Math.PI*2); ctx.fill();
+
+  // Porthole
+  ctx.strokeStyle = '#a0e8ff'; ctx.lineWidth = 2; ctx.fillStyle = '#d0f4ff';
+  ctx.beginPath(); ctx.arc(12,-2,7,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.beginPath(); ctx.arc(10,-4,2.5,0,Math.PI*2); ctx.fill();
+
+  // Animated propeller
+  for (let i = 0; i < 3; i++) {
+    const a = t*4 + i*(Math.PI*2/3);
+    ctx.fillStyle = lodka.kolor2;
+    ctx.save(); ctx.translate(-40,0); ctx.rotate(a);
+    ctx.beginPath(); ctx.ellipse(0,0,12,4,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle = lodka.kolor1; ctx.beginPath(); ctx.arc(-40,0,4,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = lodka.kolor2; ctx.lineWidth = 1; ctx.stroke();
+
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FOG OF WAR
+// ═══════════════════════════════════════════════════════════════
+
+function drawFog(sx, sy, zone, lodka) {
+  fogCtx.clearRect(0,0,W,H);
+  fogCtx.fillStyle = zone.fogColor;
+  fogCtx.fillRect(0,0,W,H);
+  fogCtx.globalCompositeOperation = 'destination-out';
+
+  const r = lodka.zasieg;
+
+  if (lodka.reflektor) {
+    const dir = sub.dir;
+    const g2  = fogCtx.createRadialGradient(sx,sy,0, sx+dir*60,sy,r*1.4);
+    g2.addColorStop(0,'rgba(0,0,0,1)'); g2.addColorStop(0.65,'rgba(0,0,0,0.9)'); g2.addColorStop(1,'rgba(0,0,0,0)');
+    fogCtx.fillStyle = g2;
+    fogCtx.beginPath(); fogCtx.moveTo(sx,sy);
+    fogCtx.arc(sx+dir*60,sy,r*1.4,-Math.PI*0.38,Math.PI*0.38);
+    fogCtx.closePath(); fogCtx.fill();
+    // small ambient circle
+    const g3 = fogCtx.createRadialGradient(sx,sy,0,sx,sy,65);
+    g3.addColorStop(0,'rgba(0,0,0,0.85)'); g3.addColorStop(1,'rgba(0,0,0,0)');
+    fogCtx.fillStyle = g3;
+    fogCtx.beginPath(); fogCtx.arc(sx,sy,65,0,Math.PI*2); fogCtx.fill();
+  } else {
+    const g = fogCtx.createRadialGradient(sx,sy,0,sx,sy,r);
+    g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(0.6,'rgba(0,0,0,0.85)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    fogCtx.fillStyle = g;
+    fogCtx.beginPath(); fogCtx.arc(sx,sy,r,0,Math.PI*2); fogCtx.fill();
+  }
+
+  fogCtx.globalCompositeOperation = 'source-over';
+  ctx.drawImage(fogCv, 0, 0);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HUD
+// ═══════════════════════════════════════════════════════════════
+
+function drawHUD(zone, animals) {
+  const foundCount = animals.filter(a => progress.found[a.id]).length;
+  const total      = animals.length;
+
+  // Top-left panel
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.beginPath(); ctx.roundRect(10,10,230,72,8); ctx.fill();
+  ctx.fillStyle = '#38d8f8'; ctx.font = 'bold 14px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText(zone.nazwa, 20, 30);
+  ctx.fillStyle = '#fff'; ctx.font = '12px system-ui';
+  ctx.fillText('Odkryto: '+foundCount+' / '+total, 20, 48);
+  // Progress dots
+  for (let i = 0; i < total; i++) {
+    const isF = !!progress.found[animals[i].id];
+    ctx.fillStyle = isF ? '#38d8f8' : '#334455';
+    ctx.beginPath(); ctx.arc(20+i*16, 65, 5, 0, Math.PI*2); ctx.fill();
+    if (isF) { ctx.strokeStyle = '#80eeff'; ctx.lineWidth = 1; ctx.stroke(); }
+  }
+
+  // Sub name bottom-left
+  const lodka = LODKI[selectedSub];
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath(); ctx.roundRect(10,H-40,195,28,6); ctx.fill();
+  ctx.fillStyle = lodka.kolor1; ctx.font = '12px system-ui';
+  ctx.fillText('▶ '+lodka.nazwa, 18, H-22);
+
+  // Controls top-right
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath(); ctx.roundRect(W-168,10,158,28,6); ctx.fill();
+  ctx.fillStyle = '#88bbcc'; ctx.font = '11px system-ui';
+  ctx.fillText('WASD / Strzałki', W-158, 29);
+
+  // Menu bottom-right
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath(); ctx.roundRect(W-168,H-40,158,28,6); ctx.fill();
+  ctx.fillStyle = '#38d8f8'; ctx.font = '12px system-ui';
+  ctx.fillText('← Menu  (Esc)', W-158, H-22);
+
+  ctx.textAlign = 'left';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DISCOVERY POPUP
+// ═══════════════════════════════════════════════════════════════
+
+function showPopup(animal, zone) {
+  popup = { animal, zone, timer: 8 };
+  mow(animal.nazwa + '. ' + animal.ciekawostka);
+}
+
+function drawPopup() {
+  if (!popup) return;
+  const { animal, zone } = popup;
+
+  // Full-canvas dimming overlay
+  ctx.fillStyle = 'rgba(0,5,18,0.88)';
+  ctx.fillRect(0,0,W,H);
+
+  // Panel
+  const px=55, py=55, pw=W-110, ph=H-110;
+  ctx.fillStyle = 'rgba(4,18,46,0.97)';
+  ctx.beginPath(); ctx.roundRect(px,py,pw,ph,16); ctx.fill();
+  ctx.shadowColor = '#38d8f8'; ctx.shadowBlur = 18;
+  ctx.strokeStyle = '#38d8f8'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(px,py,pw,ph,16); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Left preview panel
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.beginPath(); ctx.roundRect(px+12,py+12,252,ph-24,10); ctx.fill();
+
+  // Animal drawn at 2x in preview
+  ctx.save();
+  ctx.translate(px+138, py+ph/2-8);
+  ctx.scale(2, 2);
+  drawAnimal(animal, 0, 0, true, zone);
+  ctx.restore();
+
+  // "New discovery!" badge
+  ctx.fillStyle = '#ffe060'; ctx.font = 'bold 16px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText('★ Nowe odkrycie!', px+278, py+44);
+
+  // Animal name
+  ctx.fillStyle = '#38d8f8'; ctx.font = 'bold 26px system-ui';
+  ctx.fillText(animal.nazwa, px+278, py+82);
+
+  // Divider
+  ctx.strokeStyle = 'rgba(56,216,248,0.35)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(px+278,py+97); ctx.lineTo(px+pw-16,py+97); ctx.stroke();
+
+  // Fact text (word-wrapped)
+  ctx.fillStyle = '#c0e8f0'; ctx.font = '15px system-ui';
+  const maxLW = pw - 278 - 20;
+  const words = animal.ciekawostka.split(' ');
+  let line = '', lineY = py+126;
+  words.forEach(w => {
+    const test = line + w + ' ';
+    if (ctx.measureText(test).width > maxLW && line !== '') {
+      ctx.fillText(line.trim(), px+278, lineY);
+      line = w + ' '; lineY += 24;
+    } else { line = test; }
+  });
+  if (line.trim()) ctx.fillText(line.trim(), px+278, lineY);
+
+  // Auto-close progress bar
+  const barX = px+278, barY = py+ph-46, barW = maxLW;
+  const frac  = Math.max(0, popup.timer / 8);
+  ctx.fillStyle = 'rgba(56,216,248,0.15)';
+  ctx.beginPath(); ctx.roundRect(barX,barY,barW,5,2); ctx.fill();
+  ctx.fillStyle = '#38d8f8';
+  ctx.beginPath(); ctx.roundRect(barX,barY,barW*frac,5,2); ctx.fill();
+
+  // Close hint
+  ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '12px system-ui';
+  ctx.fillText('Dotknij żeby zamknąć', barX, py+ph-22);
+
+  ctx.textAlign = 'left';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GAME LOOP
+// ═══════════════════════════════════════════════════════════════
+
+function gameLoop(ts) {
+  const dt = Math.min((ts - lastTime) / 16.667, 3);
+  lastTime = ts;
+  t += 0.016 * dt;
+  frameCount++;
+  gameAnimId = requestAnimationFrame(gameLoop);
+
+  // ── Physics ──
+  if (!popup) {
+    if (keys['ArrowLeft']  || keys['a']) { sub.vx -= ACCEL; sub.dir = -1; }
+    if (keys['ArrowRight'] || keys['d']) { sub.vx += ACCEL; sub.dir =  1; }
+    if (keys['ArrowUp']    || keys['w']) { sub.vy -= ACCEL; }
+    if (keys['ArrowDown']  || keys['s']) { sub.vy += ACCEL; }
+  }
+  sub.vx *= DRAG; sub.vy *= DRAG;
+  sub.vx = Math.max(-MAXV, Math.min(MAXV, sub.vx));
+  sub.vy = Math.max(-MAXV, Math.min(MAXV, sub.vy));
+  sub.wx += sub.vx * dt;
+  sub.wy += sub.vy * dt;
+
+  // Tilt
+  sub.tilt += (sub.vy * 0.04 - sub.tilt) * 0.15;
+
+  // Terrain bounds
+  const zone = ZONE_INFO[currentZone];
+  const floorLimit = floorAt(sub.wx) - 30;
+  const ceilLimit  = zone.noc ? ceilAt(sub.wx) + 30 : 30;
+  if (sub.wy > floorLimit) { sub.wy = floorLimit; sub.vy *= -0.3; }
+  if (sub.wy < ceilLimit)  { sub.wy = ceilLimit;  sub.vy *= -0.3; }
+  sub.wx = Math.max(20, Math.min(WORLD_W-20, sub.wx));
+
+  // ── Camera ──
+  const tx = Math.max(0, Math.min(WORLD_W-W, sub.wx - W/2));
+  const ty = Math.max(0, Math.min(WORLD_H-H, sub.wy - H/2));
+  cam.x += (tx - cam.x) * 0.08;
+  cam.y += (ty - cam.y) * 0.08;
+
+  // ── Bubbles from propeller ──
+  if (frameCount % 8 === 0) {
+    const propX = sub.wx - sub.dir * 45;
+    addBubble(propX, sub.wy);
+    addBubble(propX + (Math.random()-.5)*10, sub.wy + (Math.random()-.5)*8);
+  }
+  updateParticles();
+
+  // ── Animal discovery ──
+  if (!popup) {
+    currentZoneAnimals.forEach(animal => {
+      if (progress.found[animal.id]) return;
+      const awx = animal.wx + Math.sin(t*0.5+animal.phase)*15;
+      const awy = animal.wy;
+      const dx = sub.wx - awx, dy = sub.wy - awy;
+      if (Math.sqrt(dx*dx+dy*dy) < 130) {
+        progress.found[animal.id] = true;
+        saveProgress();
+        showPopup(animal, zone);
+        if (totalFound() >= 5 && progress.sub < 1) {
+          progress.sub = 1; saveProgress();
+          setTimeout(() => mow('Odblokowano Łódź z Reflektorem!'), 9000);
+        }
+      }
+    });
+  }
+
+  // Popup timer
+  if (popup) { popup.timer -= 0.016*dt; if (popup.timer <= 0) popup = null; }
+
+  // ═══════════════ RENDER ═══════════════
+
+  ctx.clearRect(0,0,W,H);
+
+  // 1. Background + parallax
+  drawBackground(zone);
+
+  // 2. Terrain
+  drawTerrain(zone);
+
+  // 3. Kelp / coral
+  drawKelp();
+
+  // 4. Animals
+  const lodka = LODKI[selectedSub];
+  currentZoneAnimals.forEach(animal => {
+    const bob  = Math.sin(t*1.8+animal.phase)*6;
+    const swim = Math.sin(t*0.5+animal.phase)*15;
+    const awx  = animal.wx + swim;
+    const awy  = animal.wy + bob;
+    const asx  = awx - cam.x, asy = awy - cam.y;
+    if (asx < -200 || asx > W+200 || asy < -200 || asy > H+200) return;
+
+    const isFound = !!progress.found[animal.id];
+    const dx = sub.wx - awx, dy = sub.wy - awy;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    const visible = isFound || dist < lodka.zasieg*1.2;
+    if (!visible) return;
+
+    ctx.save();
+    if (!isFound) ctx.globalAlpha = Math.max(0.05, 1 - dist/(lodka.zasieg*1.4));
+    if (!isFound && dist < 160) { ctx.shadowColor = '#38d8f8'; ctx.shadowBlur = 10+Math.sin(t*4)*5; }
+
+    drawAnimal(animal, asx, asy, isFound, zone);
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+
+    if (isFound && dist < 220) {
+      ctx.globalAlpha = Math.max(0, 1-dist/220);
+      ctx.fillStyle = '#38d8f8'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(animal.nazwa, asx, asy - animal.rozmiar*0.65 - 8);
+      ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  });
+
+  // 5. Submarine
+  const subSX = sub.wx - cam.x, subSY = sub.wy - cam.y;
+  drawSub(subSX, subSY, sub.dir, sub.tilt, lodka);
+
+  // 6. Bubbles
+  drawBubbles();
+
+  // 7. Fog of war
+  drawFog(subSX, subSY, zone, lodka);
+
+  // 8. HUD
+  drawHUD(zone, currentZoneAnimals);
+
+  // 9. Discovery popup
+  if (popup) drawPopup();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GAME LIFECYCLE
+// ═══════════════════════════════════════════════════════════════
+
+function startGame(zoneId) {
+  currentZone        = zoneId;
+  currentZoneAnimals = ZWIERZETA[zoneId].map(a => Object.assign({}, a));
+  bubbles = []; particles = [];
+  sub = { wx:200, wy:260, vx:0, vy:0, dir:1, tilt:0 };
+  cam = { x:0, y:0 };
+  popup = null; t = 0; frameCount = 0;
+
+  generateKelp(ZONE_INFO[zoneId]);
+  showScreen('gameScreen');
+  canvas.focus();
+
+  if (gameAnimId) cancelAnimationFrame(gameAnimId);
+  lastTime   = performance.now();
+  gameAnimId = requestAnimationFrame(gameLoop);
+
+  setTimeout(() => mow(ZONE_INFO[zoneId].intro), 500);
+}
+
+function stopGame() {
+  if (gameAnimId) { cancelAnimationFrame(gameAnimId); gameAnimId = null; }
+  keys = {};
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INPUT
+// ═══════════════════════════════════════════════════════════════
+
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (popup && (e.key === ' ' || e.key === 'Enter')) { popup = null; synth.cancel(); return; }
+  if (e.key === 'Escape' && gameAnimId) { showMenu(); return; }
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key) && gameAnimId) e.preventDefault();
+});
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// D-pad touch/mouse
+document.querySelectorAll('#dpad button').forEach(btn => {
+  const k = btn.dataset.k;
+  btn.addEventListener('touchstart', e => { e.preventDefault(); keys[k] = true;  }, {passive:false});
+  btn.addEventListener('touchend',   e => { e.preventDefault(); keys[k] = false; }, {passive:false});
+  btn.addEventListener('mousedown',  () => { keys[k] = true;  });
+  btn.addEventListener('mouseup',    () => { keys[k] = false; });
+});
+
+// Canvas click
+canvas.addEventListener('click', e => {
+  if (popup) { popup = null; synth.cancel(); return; }
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (W / rect.width);
+  const my = (e.clientY - rect.top)  * (H / rect.height);
+  if (mx > W-168 && my > H-40) showMenu();
+});
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (popup) { popup = null; synth.cancel(); }
+}, {passive:false});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+
+buildSubSelector();
+initVoices();
+setTimeout(initVoices, 500);
+setTimeout(initVoices, 1500);
+</script>
+</body>
+</html>

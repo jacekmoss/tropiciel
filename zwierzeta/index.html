@@ -1,0 +1,2593 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tropiciel">
+<meta name="theme-color" content="#1a3d2a">
+<title>Tropiciel Zwierząt</title>
+<style>
+  :root{
+    --tlo1:#1d3a2a; --tlo2:#0d1f16;
+    --akcent:#ffd166; --akcent2:#8ee06a; --brzeg:rgba(255,255,255,.18);
+    --panel:rgba(10,26,18,.88);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:radial-gradient(120% 90% at 50% 0%, #2f6b45 0%, #1a3d2a 45%, #0a1a12 100%);
+    background-attachment:fixed;
+    color:#eefaf0;
+    font-family:"Segoe UI Rounded","Segoe UI",Nunito,system-ui,-apple-system,sans-serif;
+    display:flex;align-items:flex-start;justify-content:center;
+    overflow-x:hidden;overflow-y:auto;user-select:none;-webkit-tap-highlight-color:transparent;
+  }
+  #app{width:min(100vw,1120px);padding:12px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .screen{display:none;width:100%;animation:fade .25s ease}
+  .screen.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  h1{
+    margin:0 0 2px;text-align:center;font-size:clamp(26px,5vw,44px);letter-spacing:1px;
+    background:linear-gradient(180deg,#ffffff,#a8e9b4);-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 6px 24px rgba(0,0,0,.35);
+  }
+  .podtytul{text-align:center;opacity:.75;margin:0 0 16px;font-size:15px}
+
+  /* ---------- wybor krainy ---------- */
+  .krainy{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+  .kraina{
+    position:relative;border-radius:20px;padding:16px;border:2px solid var(--brzeg);cursor:pointer;
+    background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+    transition:.15s transform,.15s border-color;min-height:150px;
+    display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+  }
+  .kraina:hover{transform:translateY(-4px);border-color:#8ee06a}
+  .kraina .ikony{font-size:30px;letter-spacing:2px;line-height:1.25}
+  .kraina .tyt{font-weight:800;font-size:20px;margin:8px 0 2px}
+  .kraina .op{font-size:12px;opacity:.7;line-height:1.35}
+  .kraina .trud{font-size:12px;letter-spacing:3px;color:var(--akcent2);margin-top:4px}
+  .kraina .trud i{opacity:.22;font-style:normal}
+  .kraina .postep{margin-top:10px;font-size:13px;font-weight:700;color:var(--akcent);
+    display:flex;align-items:center;gap:8px}
+  .kraina .reset{
+    margin-left:auto;background:rgba(255,255,255,.12);color:#eefaf0;border:1px solid var(--brzeg);
+    border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;box-shadow:none;line-height:1.5;
+  }
+  .kraina .reset:hover{background:#ff8f7a;color:#3a0f06;transform:none;box-shadow:none}
+  .kraina .reset:active{transform:translateY(1px);box-shadow:none}
+
+  .ustawienia{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:14px;font-size:14px}
+  .ustawienia select{
+    font:inherit;font-size:14px;font-weight:700;color:#eefaf0;background:#1b3a29;
+    border:2px solid var(--brzeg);border-radius:12px;padding:8px 12px;max-width:320px;
+  }
+  .ustawienia label{opacity:.7}
+  .kraina .pas{height:8px;border-radius:5px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:6px}
+  .kraina .pas i{display:block;height:100%;background:linear-gradient(90deg,#8ee06a,#ffd166);transition:.4s width}
+  .kraina.zamk{opacity:.45;cursor:not-allowed;filter:grayscale(.6)}
+  .kraina.zamk:hover{transform:none;border-color:var(--brzeg)}
+  .kraina .zamek{position:absolute;top:12px;right:14px;font-size:20px}
+  .kraina.zrobiona{border-color:var(--akcent2)}
+  .kraina .medal{position:absolute;top:10px;right:12px;font-size:24px}
+
+  .rzad{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  button{
+    font:inherit;font-weight:800;font-size:15px;color:#0a2a16;cursor:pointer;
+    background:linear-gradient(180deg,#d6f5a8,var(--akcent2));
+    border:0;border-radius:14px;padding:11px 22px;box-shadow:0 5px 0 #4f9a3a,0 8px 18px rgba(0,0,0,.3);
+    transition:.1s transform,.1s box-shadow;
+  }
+  button:hover{transform:translateY(-2px);box-shadow:0 7px 0 #4f9a3a,0 10px 20px rgba(0,0,0,.35)}
+  button:active{transform:translateY(3px);box-shadow:0 2px 0 #4f9a3a}
+  button.drugi{background:linear-gradient(180deg,#ffe29a,var(--akcent));box-shadow:0 5px 0 #c99a34,0 8px 18px rgba(0,0,0,.3)}
+  button.drugi:hover{box-shadow:0 7px 0 #c99a34,0 10px 20px rgba(0,0,0,.35)}
+  button.drugi:active{box-shadow:0 2px 0 #c99a34}
+  button.cichy{background:rgba(255,255,255,.12);color:#eefaf0;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+  button.cichy:hover{box-shadow:0 6px 0 rgba(0,0,0,.25)}
+
+  /* ---------- gra ---------- */
+  #wrap{position:relative;width:100%;aspect-ratio:20/13;border-radius:18px;overflow:hidden;
+        border:2px solid rgba(255,255,255,.22);box-shadow:0 18px 50px rgba(0,0,0,.5);background:#0a1a12}
+  canvas#mapa{display:block;width:100%;height:100%;cursor:pointer;touch-action:none}
+
+  /* krzyżak kierunkowy — pokazuje się tylko na ekranach dotykowych */
+  #dpad{position:absolute;right:14px;bottom:14px;display:none;
+        grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px);gap:4px;z-index:5}
+  body.dotyk #dpad{display:grid}
+  #dpad button{
+    background:rgba(10,26,18,.55);border:2px solid rgba(255,255,255,.28);color:#eefaf0;
+    border-radius:16px;font-size:24px;font-weight:900;padding:0;box-shadow:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #dpad button:active{background:var(--akcent);color:#0a2a16;transform:none;box-shadow:none}
+
+  /* ekwipunek nałożony na mapę — żeby na tablecie nie trzeba było przewijać */
+  /* wskazówki tropienia nałożone na mapę — w pełnym ekranie panel pod mapą się nie mieści */
+  #tropyDotyk{position:absolute;left:12px;top:12px;display:none;gap:6px;flex-wrap:wrap;max-width:58%;z-index:5}
+  body.dotyk #tropyDotyk{display:flex}
+  #tropyDotyk .chip{
+    display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;
+    background:rgba(10,26,18,.66);border:2px solid rgba(255,255,255,.22);
+    font-size:15px;font-weight:900;color:#eefaf0;line-height:1;
+  }
+  #tropyDotyk .chip .e{font-size:20px;line-height:1}
+  #tropyDotyk .chip .s{font-size:11px;font-weight:600;opacity:.75}
+  #tropyDotyk .chip.trop{border-color:var(--akcent);color:var(--akcent)}
+  #tropyDotyk .chip.ok{border-color:var(--akcent2)}
+
+  /* na tablecie mapa dopasowuje się do wysokości ekranu, a panele schodzą na nią */
+  body.dotyk #app{padding:6px;gap:6px}
+  /* wysokość ograniczona tak, by szerokość wyliczona z proporcji 20:13
+     nigdy nie wyszła poza ekran — inaczej mapa by się rozciągała */
+  body.dotyk #wrap{
+    width:auto;
+    height:min(calc(100vh - 104px), calc((100vw - 14px) * 13 / 20));
+    height:min(calc(100dvh - 104px), calc((100vw - 14px) * 13 / 20));
+  }
+  body.dotyk #plecak{display:none}
+  body.dotyk #tropy{display:none}
+  body.dotyk #paskiGry{margin-bottom:2px}
+  body.dotyk .pod{margin-top:2px}
+
+  #plecakDotyk{position:absolute;left:14px;bottom:14px;display:none;gap:8px;z-index:5}
+  body.dotyk #plecakDotyk{display:flex}
+  #plecakDotyk .rzeczD{
+    position:relative;width:60px;height:60px;padding:0;border-radius:18px;
+    background:rgba(10,26,18,.55);border:2px solid rgba(255,255,255,.28);box-shadow:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #plecakDotyk .rzeczD:active{background:var(--akcent);transform:none;box-shadow:none}
+  #plecakDotyk .rzeczD .e{font-size:26px;line-height:1}
+  #plecakDotyk .rzeczD .n{
+    position:absolute;right:-3px;top:-5px;background:var(--akcent);color:#0a2a16;
+    border-radius:999px;min-width:21px;height:21px;font-size:12px;font-weight:900;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #plecakDotyk .rzeczD.pusta{opacity:.35}
+  #plecakDotyk .rzeczD.dziala{border-color:var(--akcent);background:rgba(255,209,102,.28)}
+  #dpad .g{grid-area:1/2} #dpad .l{grid-area:2/1} #dpad .p{grid-area:2/3} #dpad .d{grid-area:3/2}
+
+  /* na dotyku wszystko musi być łatwe do trafienia palcem */
+  body.dotyk button{padding:13px 24px;font-size:16px}
+  body.dotyk .rzecz{padding:12px 14px}
+  body.dotyk .zwBtn{padding:12px 6px}
+  body.dotyk .kraina{min-height:170px}
+  body.dotyk .czytaj{padding:7px 14px;font-size:13px}
+  body.dotyk .zw .czytaj{padding:6px 11px}
+  @media (max-width:820px){
+    #paskiGry .tytulMapy{font-size:17px}
+    #paskiGry .info{font-size:12px}
+    .pod{font-size:12px}
+  }
+  #obrocTablet{
+    display:none;position:fixed;inset:0;z-index:99;background:var(--tlo2);
+    align-items:center;justify-content:center;text-align:center;padding:30px;font-size:19px;font-weight:700;
+  }
+  @media (max-aspect-ratio: 3/4){ body.dotyk #obrocTablet{display:flex} }
+  #naklad{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
+          background:rgba(4,16,10,.74);backdrop-filter:blur(3px)}
+  #naklad.ukryj{display:none}
+  .panel{background:var(--panel);border:2px solid var(--brzeg);border-radius:22px;padding:24px 28px;text-align:center;max-width:520px}
+  .panel h2{margin:0 0 8px;font-size:28px}
+  .panel p{margin:8px 0;opacity:.88;font-size:15px;line-height:1.45}
+  .panel .duzeEmoji{font-size:76px;line-height:1.1;margin:4px 0 6px}
+  .panel .fakt{background:rgba(255,209,102,.14);border:1px solid rgba(255,209,102,.35);
+    border-radius:14px;padding:12px 16px;font-size:15px;margin-top:12px}
+
+  /* pasek tropienia pod mapa */
+  /* plecak tropiciela */
+  #plecak{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:12px;width:100%}
+  .rzecz{
+    display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:14px;text-align:left;
+    background:rgba(255,255,255,.08);border:2px solid var(--brzeg);color:#eefaf0;
+    box-shadow:none;font-weight:600;position:relative;
+  }
+  .rzecz:hover{transform:translateY(-2px);box-shadow:none;background:rgba(255,255,255,.14)}
+  .rzecz:active{transform:translateY(1px);box-shadow:none}
+  .rzecz .em{font-size:26px;line-height:1}
+  .rzecz .op{display:flex;flex-direction:column;min-width:0}
+  .rzecz .op b{font-size:14px}
+  .rzecz .op small{font-size:11px;opacity:.65;line-height:1.25}
+  .rzecz .ile{margin-left:auto;font-weight:900;font-size:17px;color:var(--akcent)}
+  .rzecz .kl{position:absolute;top:4px;right:8px;font-size:10px;opacity:.45}
+  .rzecz.pusta{opacity:.4}
+  .rzecz.dziala{border-color:var(--akcent);background:rgba(255,209,102,.16)}
+
+  /* wybór zwierzęcia do wybiegu */
+  .wyborZw{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;
+    max-height:44vh;overflow-y:auto;margin:12px 0;padding:4px}
+  .zwBtn{
+    display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;
+    background:rgba(255,255,255,.08);border:2px solid var(--brzeg);color:#eefaf0;box-shadow:none;
+  }
+  .zwBtn:hover{transform:translateY(-2px);box-shadow:none;border-color:var(--akcent2)}
+  .zwBtn:active{transform:translateY(1px);box-shadow:none}
+  .zwBtn .em{font-size:30px;line-height:1.1}
+  .zwBtn .nz{font-size:11px;font-weight:700;line-height:1.2}
+  .zwBtn .gdzie{font-size:9px;opacity:.6}
+  .zwBtn.tu{border-color:var(--akcent2);background:rgba(142,224,106,.18)}
+  .zwBtn.zajete{opacity:.55}
+
+  #tropy{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px;width:100%}
+  .trop{
+    display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;
+    background:rgba(255,255,255,.07);border:2px solid var(--brzeg);transition:.2s;
+  }
+  .trop .em{font-size:28px;line-height:1;filter:grayscale(1) brightness(.4)}
+  .trop .txt{min-width:0}
+  .trop .nz{font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .trop .st{font-size:12px;opacity:.7}
+  .trop.tropiony{border-color:var(--akcent);background:rgba(255,209,102,.12)}
+  .trop.tropiony .em{filter:none}
+  .trop.znaleziony{border-color:var(--akcent2);background:rgba(142,224,106,.14)}
+  .trop.znaleziony .em{filter:none}
+  .trop .strzalka{margin-left:auto;font-size:22px;color:var(--akcent);font-weight:900}
+
+  #paskiGry{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;margin-bottom:8px;flex-wrap:wrap}
+  #paskiGry .tytulMapy{font-weight:800;font-size:20px}
+  #paskiGry .info{opacity:.7;font-size:13px}
+
+  /* ---------- album ---------- */
+  .albumGrupa{margin-bottom:22px}
+  .albumGrupa h3{margin:0 0 10px;font-size:19px;display:flex;align-items:center;gap:10px}
+  .albumGrupa h3 small{font-weight:600;opacity:.55;font-size:13px}
+  .karty{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .zw{
+    border-radius:16px;padding:12px;text-align:center;border:2px solid var(--brzeg);
+    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  }
+  .zw .em{font-size:40px;line-height:1.2}
+  .zw .nz{font-weight:800;font-size:14px;margin-top:2px}
+  .zw{position:relative}
+  .zw .fk{font-size:11px;opacity:.7;line-height:1.35;margin-top:5px}
+  .czytaj{
+    background:rgba(255,255,255,.12);color:#eefaf0;border:1px solid var(--brzeg);
+    border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;
+    box-shadow:none;line-height:1.4;
+  }
+  .czytaj:hover{background:var(--akcent);color:#0a2a16;transform:none;box-shadow:none}
+  .czytaj:active{transform:translateY(1px);box-shadow:none}
+  .zw .czytaj{position:absolute;top:6px;right:6px;padding:2px 7px;font-size:11px}
+  .albumGrupa h3 .czytaj{margin-left:auto}
+  .mowi{animation:puls 1.1s ease-in-out infinite}
+  @keyframes puls{0%,100%{opacity:1}50%{opacity:.55}}
+  .zw.brak{opacity:.4}
+  .zw.brak .em{filter:grayscale(1) brightness(.35)}
+
+  .pod{text-align:center;opacity:.6;font-size:13px;margin-top:10px}
+  kbd{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-bottom-width:2px;
+      border-radius:6px;padding:1px 7px;font-family:inherit;font-size:12px}
+</style>
+</head>
+<body>
+<div id="obrocTablet">🔄<br>Obróć tablet poziomo,<br>żeby lepiej widzieć mapę</div>
+<div id="app">
+
+  <!-- EKRAN 1: wybor krainy -->
+  <section id="ekranKrainy" class="screen on">
+    <h1>Tropiciel Zwierząt</h1>
+    <p class="podtytul" id="podtytulKrain">Zwiedzaj krainy, szukaj tropów i odkryj wszystkie zwierzęta</p>
+    <div class="krainy" id="listaKrain"></div>
+    <div class="ustawienia">
+      <label for="wyborGlosu">Głos lektora:</label>
+      <select id="wyborGlosu"></select>
+      <button class="cichy" id="btnProbaGlosu">🔊 Wypróbuj</button>
+    </div>
+    <div class="rzad">
+      <button class="cichy" id="btnDotyk">👆 Sterowanie</button>
+      <button class="cichy" id="btnLektor">🔊 Lektor</button>
+      <button id="btnZoo">🏛️ Moje ZOO</button>
+      <button class="drugi" id="btnAlbum">📔 Mój album</button>
+      <button class="cichy" id="btnResetGry">Zacznij od nowa</button>
+    </div>
+  </section>
+
+  <!-- EKRAN 2: gra -->
+  <section id="ekranGry" class="screen">
+    <div id="paskiGry">
+      <div>
+        <div class="tytulMapy" id="tytulMapy"></div>
+        <div class="info" id="infoMapy"></div>
+      </div>
+      <div class="rzad" style="margin:0">
+        <button class="cichy" id="btnPelnyEkran">⛶</button>
+        <button class="cichy" id="btnDoKrain">← Mapa świata</button>
+      </div>
+    </div>
+    <div id="wrap">
+      <canvas id="mapa" width="960" height="624"></canvas>
+      <div id="tropyDotyk"></div>
+      <div id="plecakDotyk"></div>
+      <div id="dpad">
+        <button class="g" data-kier="g">▲</button>
+        <button class="l" data-kier="l">◀</button>
+        <button class="p" data-kier="p">▶</button>
+        <button class="d" data-kier="d">▼</button>
+      </div>
+      <div id="naklad" class="ukryj"><div class="panel" id="panel"></div></div>
+    </div>
+    <div id="plecak"></div>
+    <div id="tropy"></div>
+    <p class="pod">Chodź <kbd>strzałkami</kbd> lub <kbd>WSAD</kbd> &nbsp;•&nbsp; kliknij w mapę, żeby tam pójść &nbsp;•&nbsp;
+       ekwipunek na klawiszach <kbd>1</kbd>–<kbd>4</kbd> &nbsp;•&nbsp; w ZOO <kbd>E</kbd> otwiera wybieg</p>
+  </section>
+
+  <!-- EKRAN 3: album -->
+  <section id="ekranAlbum" class="screen">
+    <h1>Mój album</h1>
+    <p class="podtytul" id="podtytulAlbum"></p>
+    <div class="rzad" style="margin:0 0 18px">
+      <button class="drugi" id="btnCzytajAlbum">🔊 Przeczytaj cały album</button>
+      <button class="cichy" id="btnStopLektor">⏹️ Zatrzymaj</button>
+    </div>
+    <div id="albumTresc"></div>
+    <div class="rzad">
+      <button id="btnAlbumWroc">← Wróć do map</button>
+      <button class="drugi" id="btnZooZAlbumu">🏛️ Ustaw w ZOO</button>
+    </div>
+  </section>
+
+</div>
+<script>
+"use strict";
+/* =========================================================
+   TROPICIEL ZWIERZĄT — eksploracja map i tropienie zwierząt
+   ========================================================= */
+
+const T   = 48;                 // rozmiar kafla w pikselach
+const W   = 960, H = 624;       // widoczny kawałek mapy (20 x 13 kafli)
+const MW  = 40, MH = 30;        // rozmiar mapy w kaflach
+const ZASIEG = 3.4;             // ile kafli dookoła siebie odsłania gracz
+let lornetkaCzas = 0;           // ile sekund jeszcze działa lornetka
+function zasieg(){
+  const baza = (M && M.trud) ? M.trud.zasieg : ZASIEG;
+  return baza + (lornetkaCzas > 0 ? 3.4 : 0);
+}
+
+const cv  = document.getElementById('mapa');
+const ctx = cv.getContext('2d');
+
+const clamp = (v,a,b) => v<a?a:(v>b?b:v);
+const kafelId = (x,y) => y*MW + x;
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* stały "szum" na podstawie współrzędnych — do drobnych ozdób terenu */
+function hash2(x,y){ let h = x*374761393 + y*668265263; h = (h^(h>>13))*1274126177; return ((h^(h>>16))>>>0)/4294967296; }
+
+/* ---------- dźwięk ---------- */
+let AC = null;
+function ton(f,d,typ,v){
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type=typ||'sine'; o.frequency.setValueAtTime(f,AC.currentTime);
+    g.gain.setValueAtTime(v||0.05,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+d);
+    o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime+d);
+  }catch(e){}
+}
+const sfx = {
+  krok:    ()=>ton(180 + Math.random()*40,.06,'triangle',.025),
+  trop:    ()=>{ton(660,.10,'sine',.05); setTimeout(()=>ton(880,.12,'sine',.045),90);},
+  odkrycie:()=>[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>ton(f,.22,'triangle',.055),i*95)),
+  mapa:    ()=>[392,523,659].forEach((f,i)=>setTimeout(()=>ton(f,.3,'sine',.05),i*140)),
+  blok:    ()=>ton(90,.08,'sawtooth',.03)
+};
+
+/* =========================================================
+   LEKTOR — czyta ciekawostki na głos
+   Korzysta z syntezatora mowy wbudowanego w przeglądarkę. Jeśli w systemie
+   jest głos polski, wybieramy go; jeśli nie, czyta głos domyślny.
+   ========================================================= */
+let lektorWl = true;
+let glosPL = null;
+
+/* Ocena głosu — im wyżej, tym naturalniej brzmi.
+   Głosy "Natural"/"Online" to neuronowe głosy Edge (brzmią jak człowiek),
+   warianty "Desktop" to stare, robotyczne głosy SAPI — bierzemy je na końcu. */
+function ocenGlos(g){
+  let p = 0;
+  if(/^pl/i.test(g.lang) || /polish|polski/i.test(g.name)) p += 100; else p -= 200;
+  if(/natural|neural|online/i.test(g.name)) p += 60;
+  if(/desktop/i.test(g.name)) p -= 40;
+  if(g.localService === false) p += 10;
+  return p;
+}
+function listaGlosow(){
+  try{ return (window.speechSynthesis.getVoices() || []).slice(); }catch(e){ return []; }
+}
+function szukajGlosu(){
+  const glosy = listaGlosow();
+  if(!glosy.length) return;
+  if(postep.glos){
+    const wybrany = glosy.find(g => g.name === postep.glos);
+    if(wybrany){ glosPL = wybrany; odswiezListeGlosow(); return; }
+  }
+  const posortowane = glosy.slice().sort((a,b) => ocenGlos(b) - ocenGlos(a));
+  glosPL = (posortowane[0] && ocenGlos(posortowane[0]) > 0) ? posortowane[0] : null;
+  odswiezListeGlosow();
+}
+
+/* usuwa emoji i znaczki, żeby lektor nie czytał ich nazw */
+function bezEmoji(t){
+  return String(t).replace(/[\u2000-\uFFFF]/g, ' ').replace(/[\uD800-\uDFFF]/g, '')
+                  .replace(/\s+/g, ' ').trim();
+}
+
+/* polska odmiana: 1 zwierzę, 2 zwierzęta, 5 zwierząt */
+function odmiana(n, jeden, kilka, wiele){
+  if(n === 1) return jeden;
+  const d = n % 10, st = n % 100;
+  return (d >= 2 && d <= 4 && (st < 10 || st > 20)) ? kilka : wiele;
+}
+if(window.speechSynthesis){
+  szukajGlosu();
+  window.speechSynthesis.onvoiceschanged = szukajGlosu;
+  // Chrome potrafi uciszyć dłuższą wypowiedź po kilkunastu sekundach
+  setInterval(() => {
+    try{ if(window.speechSynthesis.speaking) window.speechSynthesis.resume(); }catch(e){}
+  }, 7000);
+}
+
+function zdanie(tekst){
+  const u = new SpeechSynthesisUtterance(bezEmoji(tekst));
+  u.lang = 'pl-PL';
+  u.rate = glosPL && /natural|neural|online/i.test(glosPL.name) ? 1.0 : 0.92;
+  u.pitch = 1.05;
+  if(glosPL) u.voice = glosPL;
+  return u;
+}
+function mow(tekst){
+  if(!lektorWl || !window.speechSynthesis) return;
+  try{ window.speechSynthesis.cancel(); window.speechSynthesis.speak(zdanie(tekst)); }catch(e){}
+}
+function mowWiele(teksty){
+  if(!lektorWl || !window.speechSynthesis || !teksty.length) return;
+  try{
+    window.speechSynthesis.cancel();
+    teksty.forEach(t => window.speechSynthesis.speak(zdanie(t)));
+  }catch(e){}
+}
+function cisza(){ try{ window.speechSynthesis.cancel(); }catch(e){} }
+function opisZwierza(z){ return z.nazwa + '. ' + z.fakt; }
+
+/* lista głosów do wyboru w menu */
+function odswiezListeGlosow(){
+  const sel = document.getElementById('wyborGlosu');
+  if(!sel) return;
+  const glosy = listaGlosow().slice().sort((a,b) => ocenGlos(b) - ocenGlos(a));
+  if(!glosy.length){ sel.innerHTML = '<option>brak głosów w przeglądarce</option>'; return; }
+  sel.innerHTML = glosy.map(g =>
+    '<option value="' + g.name.split(String.fromCharCode(34)).join('') + '"' + (glosPL && g.name === glosPL.name ? ' selected' : '') + '>' +
+    g.name + (/^pl/i.test(g.lang) ? '' : '  (' + g.lang + ')') + '</option>').join('');
+}
+
+/* =========================================================
+   KRAINY I ZWIERZĘTA
+   ========================================================= */
+const KRAINY = [
+  {
+    id:'sawanna', nazwa:'Sawanna', opis:'Rozległe trawy, samotne akacje i wodopój w cieniu.',
+    trawa:['#c9b968','#bda85a'], krzak:'#8fa04a', drzewo:'#5c7a3a', pien:'#6b4a2a',
+    woda:'#3f8fb0', skala:'#9a8b6a', niebo:'#e8d9a0', rodzaj:'akacja',
+    zwierzeta:[
+      {em:'🦁', nazwa:'Lew',       fakt:'Ryk lwa słychać nawet z 8 kilometrów — to najgłośniejszy głos sawanny.'},
+      {em:'🦒', nazwa:'Żyrafa',    fakt:'Żyrafa ma w szyi dokładnie tyle samo kręgów co ty — siedem, tylko dużo dłuższych.'},
+      {em:'🦓', nazwa:'Zebra',     fakt:'Każda zebra ma inny układ pasków, tak jak ty masz swoje odciski palców.'},
+      {em:'🐘', nazwa:'Słoń',      fakt:'Słoń słyszy nogami — czuje przez ziemię kroki stada oddalonego o kilometry.'},
+      {em:'🦏', nazwa:'Nosorożec', fakt:'Róg nosorożca jest zrobiony z tego samego materiału co twoje paznokcie.'}
+    ]
+  },
+  {
+    id:'dzungla', nazwa:'Dżungla', opis:'Gęste liście, liany i krzyk papug wysoko w koronach.',
+    trawa:['#2f6b3a','#275a32'], krzak:'#1f5a2e', drzewo:'#144526', pien:'#4a3320',
+    woda:'#2b7f86', skala:'#5d6b52', niebo:'#a8d8a0', rodzaj:'palma',
+    zwierzeta:[
+      {em:'🐒', nazwa:'Małpa',        fakt:'Małpy potrafią rozpoznać siebie w lustrze — wiedzą, że to one!'},
+      {em:'🦜', nazwa:'Papuga ara',   fakt:'Ara dożywa nawet 60 lat i przez całe życie trzyma się jednego partnera.'},
+      {em:'🐆', nazwa:'Jaguar',       fakt:'Jaguar jako jedyny wielki kot uwielbia pływać i poluje w wodzie.'},
+      {em:'🦋', nazwa:'Motyl morpho', fakt:'Jego skrzydła nie są niebieskie — to złudzenie, które robi światło odbite od łusek.'},
+      {em:'🦥', nazwa:'Leniwiec',     fakt:'Leniwiec schodzi z drzewa tylko raz w tygodniu i porusza się wolniej niż ty na czworakach.'}
+    ]
+  },
+  {
+    id:'las', nazwa:'Las', opis:'Mchy, paprocie i sowy pohukujące o zmierzchu.',
+    trawa:['#4a7a3c','#3f6c34'], krzak:'#37642f', drzewo:'#2b5226', pien:'#5a3f27',
+    woda:'#3a7fa8', skala:'#7b7f74', niebo:'#bcdcae', rodzaj:'swierk',
+    zwierzeta:[
+      {em:'🦌', nazwa:'Jeleń', fakt:'Jeleń co roku gubi poroże i zapuszcza całkiem nowe, jeszcze większe.'},
+      {em:'🦊', nazwa:'Lis',   fakt:'Lis słyszy mysz pod śniegiem i skacze w nią głową w dół, na ślepo.'},
+      {em:'🦔', nazwa:'Jeż',   fakt:'Jeż ma około 6000 igieł i zwija się w kulkę tak ciasno, że nie widać nosa.'},
+      {em:'🦉', nazwa:'Sowa',  fakt:'Sowa lata zupełnie bezgłośnie — jej pióra mają miękkie, postrzępione brzegi.'},
+      {em:'🐗', nazwa:'Dzik',  fakt:'Dzik ryjem wyczuje żołędzie zakopane na pół metra pod ziemią.'}
+    ]
+  },
+  {
+    id:'pustynia', nazwa:'Pustynia', opis:'Wydmy po horyzont, kaktusy i rozpalone kamienie.',
+    trawa:['#e0c48a','#d4b476'], krzak:'#b09a5e', drzewo:'#6f9350', pien:'#8a6b3a',
+    woda:'#4aa6c0', skala:'#b09272', niebo:'#f5dcae', rodzaj:'kaktus',
+    zwierzeta:[
+      {em:'🐪', nazwa:'Wielbłąd',      fakt:'W garbie wielbłąda nie ma wody, tylko tłuszcz — zapas jedzenia na tygodnie.'},
+      {em:'🦂', nazwa:'Skorpion',      fakt:'Skorpion świeci na niebiesko, kiedy poświecisz na niego lampą UV.'},
+      {em:'🦎', nazwa:'Jaszczurka',    fakt:'W razie niebezpieczeństwa odrzuca ogon, a potem zapuszcza nowy.'},
+      {em:'🕷️', nazwa:'Tarantula',     fakt:'Tarantula smakuje nogami — ma na nich czujniki zapachu i smaku.'},
+      {em:'🐍', nazwa:'Żmija rogata',  fakt:'Zakopuje się w piasku i czeka — na wierzchu zostawia tylko oczy.'}
+    ]
+  },
+  {
+    id:'gory', nazwa:'Góry', opis:'Skalne granie, świsty świstaków i orzeł krążący nad przełęczą.',
+    trawa:['#7f9a6a','#6f8a5c'], krzak:'#5f7a4e', drzewo:'#3d5c39', pien:'#4f3a26',
+    woda:'#5aa8c8', skala:'#9aa0a6', niebo:'#cfe0ea', rodzaj:'swierk',
+    zwierzeta:[
+      {em:'🐐', nazwa:'Koziorożec',          fakt:'Chodzi po niemal pionowej ścianie tamy — jego kopyta trzymają się jak przyssawki.'},
+      {em:'🦅', nazwa:'Orzeł',               fakt:'Orzeł widzi królika z wysokości 3 kilometrów — osiem razy ostrzej niż ty.'},
+      {em:'🐻', nazwa:'Niedźwiedź brunatny', fakt:'Przesypia całą zimę i przez te miesiące ani razu nie pije.'},
+      {em:'🦙', nazwa:'Lama',                fakt:'Kiedy lama jest zdenerwowana, pluje — i celuje naprawdę dobrze.'},
+      {em:'🐹', nazwa:'Świstak',             fakt:'Świstak gwiżdże na alarm tak głośno, że słychać go z drugiej strony doliny.'}
+    ]
+  },
+  {
+    id:'lod', nazwa:'Kraina Lodu', opis:'Lodowe pola, zaspy i szczeliny pełne granatowej wody.',
+    trawa:['#e8f2f8','#dbe9f2'], krzak:'#c4dcea', drzewo:'#a9c9dd', pien:'#8fb4cc',
+    woda:'#2f6f9e', skala:'#c8d8e4', niebo:'#dcecf6', rodzaj:'lod',
+    zwierzeta:[
+      {em:'🐻‍❄️', nazwa:'Niedźwiedź polarny', fakt:'Pod białym futrem ma czarną skórę, żeby lepiej łapać ciepło słońca.'},
+      {em:'🦭', nazwa:'Foka',                fakt:'Foka potrafi spać pod wodą i budzi się tylko na jeden wdech.'},
+      {em:'🐧', nazwa:'Pingwin',             fakt:'Pingwiny ślizgają się na brzuchu — tak jest im szybciej niż na nogach.'},
+      {em:'🐋', nazwa:'Wieloryb',            fakt:'Serce płetwala jest tak duże, że dziecko mogłoby przez nie przepłynąć.'},
+      {em:'🐺', nazwa:'Wilk polarny',        fakt:'Wilki wyją, żeby powiedzieć stadu „tu jestem" — każdy ma inny głos.'}
+    ]
+  },
+  {
+    id:'mokradla', nazwa:'Mokradła', opis:'Trzciny, mgła nad wodą i coś, co obserwuje spod powierzchni.',
+    trawa:['#5f7a44','#526b3b'], krzak:'#46703f', drzewo:'#35502e', pien:'#4a3a22',
+    woda:'#3f6f66', skala:'#6f7a62', niebo:'#b5cba0', rodzaj:'trzcina',
+    zwierzeta:[
+      {em:'🐊', nazwa:'Krokodyl',    fakt:'Krokodyl w ciągu życia zmienia zęby nawet 50 razy — nowe rosną pod starymi.'},
+      {em:'🐸', nazwa:'Żaba',        fakt:'Żaba pije przez skórę — nie musi w ogóle otwierać pyska, żeby się napić.'},
+      {em:'🦩', nazwa:'Flaming',     fakt:'Flaming rodzi się szary — różowieje dopiero od tego, co je.'},
+      {em:'🐢', nazwa:'Żółw błotny', fakt:'Żółw błotny potrafi przezimować zakopany w mule na samym dnie stawu.'},
+      {em:'🦆', nazwa:'Kaczka',      fakt:'Pióra kaczki są natłuszczone, dlatego woda spływa z nich jak z parasola.'}
+    ]
+  },
+  {
+    id:'bambus', nazwa:'Bambusowy Las', opis:'Zielony gąszcz bambusów, mgła i ciche kroki w poszyciu.',
+    trawa:['#6ea34e','#5f9244'], krzak:'#7fb45a', drzewo:'#4a7f3a', pien:'#8faa55',
+    woda:'#4590a0', skala:'#8a9080', niebo:'#c8e6a8', rodzaj:'bambus',
+    zwierzeta:[
+      {em:'🐼', nazwa:'Panda',     fakt:'Panda je bambus 14 godzin dziennie — na sen zostaje jej naprawdę mało czasu.'},
+      {em:'🐯', nazwa:'Tygrys',    fakt:'Tygrys ma paski nie tylko na futrze — ma je też na skórze pod spodem.'},
+      {em:'🦚', nazwa:'Paw',       fakt:'Ogon pawia ma ponad 150 piór, a każde ma „oko", które błyszczy w słońcu.'},
+      {em:'🐿️', nazwa:'Wiewiórka', fakt:'Wiewiórka zakopuje orzechy w setkach miejsc i część z nich celowo udaje.'},
+      {em:'🦡', nazwa:'Borsuk',    fakt:'Borsucza nora to podziemne miasto — korytarze mają nawet 100 metrów.'}
+    ]
+  },
+  {
+    id:'laka', nazwa:'Kwietna Łąka', opis:'Morze kwiatów, brzęczenie owadów i trawa po pas.',
+    trawa:['#8fc45a','#82b850'], krzak:'#6ea844', drzewo:'#5f9a3c', pien:'#6b7a3a',
+    woda:'#4fa8c8', skala:'#a0a58c', niebo:'#dff3a8', rodzaj:'kwiaty',
+    zwierzeta:[
+      {em:'🐝', nazwa:'Pszczoła',     fakt:'Żeby zrobić słoik miodu, pszczoły muszą odwiedzić około 4 miliony kwiatów.'},
+      {em:'🐞', nazwa:'Biedronka',    fakt:'Liczba kropek nie mówi, ile biedronka ma lat — to po prostu jej gatunek.'},
+      {em:'🦗', nazwa:'Konik polny',  fakt:'Konik polny słyszy… brzuchem, a gra, pocierając nogą o skrzydło.'},
+      {em:'🐌', nazwa:'Ślimak',       fakt:'Ślimak ma około 25 tysięcy ząbków na języku i pełznie po własnym śluzie.'},
+      {em:'🐛', nazwa:'Gąsienica',    fakt:'Gąsienica w kilka tygodni potrafi urosnąć tysiąc razy — i dopiero potem zostaje motylem.'}
+    ]
+  },
+  {
+    id:'zagroda', nazwa:'Wiejska Zagroda', opis:'Sad, pola i zwierzęta, które znasz z podwórka.',
+    trawa:['#9ec45f','#92b955'], krzak:'#7fae4a', drzewo:'#5f8f3c', pien:'#7a5a32',
+    woda:'#5aa8c8', skala:'#b0a48c', niebo:'#e8f0b0', rodzaj:'jablon',
+    zwierzeta:[
+      {em:'🐄', nazwa:'Krowa',  fakt:'Krowa żuje jedzenie nawet 8 godzin dziennie i ma cztery komory żołądka.'},
+      {em:'🐖', nazwa:'Świnia', fakt:'Świnie są mądrzejsze od psów i uwielbiają się bawić — potrafią nauczyć się swojego imienia.'},
+      {em:'🐓', nazwa:'Kogut',  fakt:'Kogut zaczyna piać jeszcze przed świtem, bo ma w głowie własny zegar.'},
+      {em:'🐑', nazwa:'Owca',   fakt:'Owca rozpoznaje po pysku około 50 innych owiec i pamięta je latami.'},
+      {em:'🐴', nazwa:'Koń',    fakt:'Koń potrafi spać na stojąco — jego nogi mają blokadę, która go trzyma.'}
+    ]
+  },
+  {
+    id:'rafa', nazwa:'Rafa Koralowa', opis:'Płytka woda, kolorowe korale i mieniące się ławice.',
+    trawa:['#e8dfae','#ddd29c'], krzak:'#d0a880', drzewo:'#e08a9a', pien:'#c07a6a',
+    woda:'#2fa8c8', skala:'#c8b898', niebo:'#bfeaf5', rodzaj:'koral',
+    zwierzeta:[
+      {em:'🐙', nazwa:'Ośmiornica', fakt:'Ośmiornica ma trzy serca i niebieską krew, a każde ramię myśli trochę samo.'},
+      {em:'🦈', nazwa:'Rekin',      fakt:'Rekin przez całe życie gubi i zapuszcza nowe zęby — nawet 30 tysięcy sztuk.'},
+      {em:'🐡', nazwa:'Rozdymka',   fakt:'W niebezpieczeństwie połyka wodę i nadyma się w kolczastą piłkę.'},
+      {em:'🦀', nazwa:'Krab',       fakt:'Krab chodzi bokiem, bo tak zginają się jego kolana — do przodu po prostu nie umie.'},
+      {em:'🐬', nazwa:'Delfin',     fakt:'Delfiny nadają sobie imiona — każdy ma własny gwizd, po którym go wołają.'}
+    ]
+  },
+  {
+    id:'tajga', nazwa:'Tajga', opis:'Bezkresne świerki, zimne strumienie i cisza między drzewami.',
+    trawa:['#5a7f4c','#4f7243'], krzak:'#456a3a', drzewo:'#26492b', pien:'#4a3524',
+    woda:'#3f7f9e', skala:'#7b8478', niebo:'#a8c8b8', rodzaj:'swierk',
+    zwierzeta:[
+      {em:'🦫', nazwa:'Bóbr',       fakt:'Bóbr ścina drzewa zębami i buduje tamy, które widać nawet z kosmosu.'},
+      {em:'🦦', nazwa:'Wydra',      fakt:'Wydry śpią trzymając się za łapki, żeby nie odpłynąć od siebie w nocy.'},
+      {em:'🦝', nazwa:'Szop pracz', fakt:'Szop „pierze" jedzenie w wodzie, bo mokre łapy czują dużo więcej.'},
+      {em:'🐦', nazwa:'Sikorka',    fakt:'Sikorka chowa nasiona w setkach kryjówek i pamięta, gdzie je schowała.'},
+      {em:'🐁', nazwa:'Nornica',    fakt:'Nornica kopie pod śniegiem całe korytarze i zimą prawie nie wychodzi na wierzch.'}
+    ]
+  },
+  {
+    id:'kangury', nazwa:'Wyspa Kangurów', opis:'Suchy busz, eukaliptusy i zwierzęta z drugiego końca świata.',
+    trawa:['#c2b96a','#b6ac5e'], krzak:'#8fa05a', drzewo:'#6f8f5a', pien:'#8a7050',
+    woda:'#4a9ec0', skala:'#b09878', niebo:'#efe0a8', rodzaj:'akacja',
+    zwierzeta:[
+      {em:'🦘', nazwa:'Kangur',        fakt:'Kangur jednym skokiem pokonuje 9 metrów, a do tyłu nie umie zrobić kroku.'},
+      {em:'🐨', nazwa:'Koala',         fakt:'Koala śpi 20 godzin na dobę, bo liście eukaliptusa dają bardzo mało energii.'},
+      {em:'🦢', nazwa:'Łabędź czarny', fakt:'W Australii łabędzie są czarne — Europejczycy długo w to nie wierzyli.'},
+      {em:'🦇', nazwa:'Nietoperz',     fakt:'Nietoperz „widzi" uszami — wysyła pisk i słucha, co się od czego odbije.'},
+      {em:'🐜', nazwa:'Mrówka',        fakt:'Mrówka udźwignie 50 razy więcej niż sama waży — jakbyś podniósł samochód.'}
+    ]
+  },
+  {
+    id:'zaginione', nazwa:'Wyspa Zaginionych', opis:'Mgła, olbrzymie paprocie i zwierzęta, których już nie ma.',
+    trawa:['#6f8a55','#63804b'], krzak:'#54743f', drzewo:'#3d5c33', pien:'#5a4326',
+    woda:'#40707f', skala:'#8a8272', niebo:'#c6cfa8', rodzaj:'paproc',
+    zwierzeta:[
+      {em:'🦕', nazwa:'Diplodok',    fakt:'Był długi jak trzy autobusy, a jego głowa mieściła mózg wielkości pięści.'},
+      {em:'🦖', nazwa:'Tyranozaur',  fakt:'Miał zęby jak banany i czuł zapach lepiej niż dzisiejszy pies.'},
+      {em:'🦣', nazwa:'Mamut',       fakt:'Ostatnie mamuty żyły jeszcze wtedy, gdy w Egipcie stały już piramidy.'},
+      {em:'🦤', nazwa:'Dodo',        fakt:'Dodo nie umiał latać i nikogo się nie bał — dlatego zniknął w niecałe 100 lat.'},
+      {em:'🦬', nazwa:'Tur',         fakt:'Tur to przodek dzisiejszych krów. Ostatni na świecie żył w polskim lesie.'}
+    ]
+  },
+  {
+    id:'glebiny', nazwa:'Głębiny Oceanu', opis:'Ciemna woda, świecące punkciki i dno, którego nikt nie widział.',
+    trawa:['#3a5f70','#325566'], krzak:'#2c4f60', drzewo:'#7f6f9e', pien:'#5f5a7a',
+    woda:'#0f2f4a', skala:'#4a5f6e', niebo:'#2a4a5e', rodzaj:'koral', noc:true,
+    zwierzeta:[
+      {em:'🦑', nazwa:'Kalmar olbrzymi', fakt:'Ma oczy wielkości talerza — największe oczy w całym świecie zwierząt.'},
+      {em:'🐳', nazwa:'Kaszalot',        fakt:'Nurkuje na 2 kilometry w głąb i wstrzymuje oddech na półtorej godziny.'},
+      {em:'🦞', nazwa:'Homar',           fakt:'Homar rośnie przez całe życie i musi zrzucać swój pancerz, gdy zrobi się za ciasny.'},
+      {em:'🦐', nazwa:'Krewetka',        fakt:'Krewetka modliszkowa uderza tak szybko, że woda wokół niej na moment się gotuje.'},
+      {em:'🐟', nazwa:'Ryba głębinowa',  fakt:'Świeci własną latarką, żeby zwabić kolację — w ciemności to jedyne światło.'}
+    ]
+  },
+  {
+    id:'park', nazwa:'Miejski Park', opis:'Alejki, stare drzewa i zwierzęta, które mieszkają obok ludzi.',
+    trawa:['#7fae55','#74a24c'], krzak:'#5f9040', drzewo:'#4a7a36', pien:'#6a4e2e',
+    woda:'#4a9ec8', skala:'#9aa08c', niebo:'#cfe8a8', rodzaj:'jablon',
+    zwierzeta:[
+      {em:'🐕', nazwa:'Pies',   fakt:'Pies wącha około 40 razy lepiej od ciebie i poznaje ludzi po zapachu, nie po twarzy.'},
+      {em:'🐈', nazwa:'Kot',    fakt:'Kot przesypia dwie trzecie życia, a mruczenie pomaga mu goić kości.'},
+      {em:'🕊️', nazwa:'Gołąb',  fakt:'Gołąb trafi do domu z odległości setek kilometrów — czuje pole magnetyczne Ziemi.'},
+      {em:'🐀', nazwa:'Szczur', fakt:'Szczury się śmieją, kiedy je łaskotać — tylko tak wysoko, że tego nie słyszysz.'},
+      {em:'🐇', nazwa:'Zając',  fakt:'Zając biegnie 70 km/h i skacze w bok, żeby zgubić ślad za sobą.'}
+    ]
+  },
+  {
+    id:'rzeka', nazwa:'Wielka Rzeka', opis:'Leniwy nurt, zalane brzegi i mnóstwo życia w mętnej wodzie.',
+    trawa:['#6f9a4e','#638e45'], krzak:'#4f7f3c', drzewo:'#3d6b34', pien:'#5a4326',
+    woda:'#3a7a8a', skala:'#7a8272', niebo:'#b8dca8', rodzaj:'palma',
+    zwierzeta:[
+      {em:'🦛', nazwa:'Hipopotam', fakt:'Hipopotam nie umie pływać — po prostu chodzi po dnie i odbija się od niego.'},
+      {em:'🐍', nazwa:'Anakonda',  f:'hue-rotate(-40deg) brightness(.85)', fakt:'Największy wąż świata waży tyle co dorosły człowiek i poluje pod wodą.'},
+      {em:'🐊', nazwa:'Kajman',    f:'brightness(.8) saturate(1.3)', fakt:'Kajman połyka kamienie — pomagają mu trawić i nurkować głębiej.'},
+      {em:'🦆', nazwa:'Mandarynka',f:'hue-rotate(-35deg) saturate(1.7)', fakt:'Kaczka mandarynka to najbardziej kolorowa kaczka świata i gniazduje w dziupli.'},
+      {em:'🦟', nazwa:'Komar',     fakt:'Gryzą tylko samice, a ich bzyczenie to dźwięk skrzydeł machających 500 razy na sekundę.'}
+    ]
+  },
+  {
+    id:'malpy', nazwa:'Kraina Małp', opis:'Wilgotny las, korony drzew i hałas dochodzący z góry.',
+    trawa:['#3f7a44','#386d3d'], krzak:'#2f6335', drzewo:'#1d4a28', pien:'#4a3320',
+    woda:'#2f8286', skala:'#5d6b52', niebo:'#a8d8a0', rodzaj:'palma',
+    zwierzeta:[
+      {em:'🦍', nazwa:'Goryl',     fakt:'Goryl co wieczór buduje sobie nowe łóżko z gałęzi — i nigdy nie śpi w starym.'},
+      {em:'🦧', nazwa:'Orangutan', fakt:'Orangutan robi sobie parasol z liścia, kiedy pada deszcz.'},
+      {em:'🐵', nazwa:'Makak',     fakt:'Makaki w Japonii kąpią się zimą w gorących źródłach, żeby się ogrzać.'},
+      {em:'🦥', nazwa:'Leniwiec dwupalczasty', f:'sepia(.35) brightness(.9)', fakt:'Porasta go zielony glon — dzięki temu jest niewidoczny wśród liści.'},
+      {em:'🦜', nazwa:'Tukan',     f:'hue-rotate(35deg) saturate(1.4)', fakt:'Ogromny dziób tukana jest lekki jak piórko i służy mu za… chłodnicę.'}
+    ]
+  },
+  {
+    id:'tundra', nazwa:'Zamarznięta Tundra', opis:'Mchy, porosty i wiatr, przed którym nie ma gdzie się schować.',
+    trawa:['#a8b89a','#9caf8e'], krzak:'#8a9e7a', drzewo:'#c4d8e0', pien:'#8fa4b4',
+    woda:'#3f7f9e', skala:'#b0b4a8', niebo:'#d8e4ea', rodzaj:'lod',
+    zwierzeta:[
+      {em:'🐂', nazwa:'Piżmowół',        fakt:'Ma najcieplejszą wełnę świata i w mróz staje z resztą stada w krąg.'},
+      {em:'🦌', nazwa:'Renifer',         f:'sepia(.35) brightness(.9)', fakt:'Renifer widzi światło ultrafioletowe — dzięki temu dostrzega porosty pod śniegiem.'},
+      {em:'🦊', nazwa:'Lis polarny',     f:'hue-rotate(165deg) saturate(.3) brightness(1.35)', fakt:'Zimą jest biały, latem brązowy — przebiera się dwa razy w roku.'},
+      {em:'🦉', nazwa:'Sowa śnieżna',    f:'saturate(.2) brightness(1.4)', fakt:'Poluje w dzień, bo w tundrze latem słońce w ogóle nie zachodzi.'},
+      {em:'🦢', nazwa:'Łabędź krzykliwy',f:'sepia(.25) brightness(1.1)', fakt:'Leci na zimowisko nawet 3000 kilometrów, trzymając się jednej rodziny.'}
+    ]
+  },
+  {
+    id:'dach', nazwa:'Dach Świata', opis:'Najwyższe granie, rzadkie powietrze i zwierzęta, których prawie nikt nie widział.',
+    trawa:['#8a9484','#7e8878'], krzak:'#6e7a68', drzewo:'#3d5244', pien:'#4f3a2a',
+    woda:'#5aa8c8', skala:'#aab0b6', niebo:'#dceaf2', rodzaj:'swierk',
+    zwierzeta:[
+      {em:'🐆', nazwa:'Irbis',            f:'saturate(.3) brightness(1.25)', fakt:'Pantera śnieżna owija się własnym ogonem jak szalikiem, kiedy śpi na mrozie.'},
+      {em:'🐐', nazwa:'Tar himalajski',   f:'sepia(.5) brightness(.9)', fakt:'Chodzi po skałach nad przepaścią i nigdy nie patrzy w dół.'},
+      {em:'🦅', nazwa:'Orłosęp',          f:'sepia(.35) brightness(1.1)', fakt:'Zrzuca kości z wysoka na skały, żeby się rozbiły — a potem zjada szpik.'},
+      {em:'🐺', nazwa:'Wilk himalajski',  f:'sepia(.3) brightness(1.15)', fakt:'Żyje wyżej niż jakikolwiek inny wilk — nawet 5500 metrów nad morzem.'},
+      {em:'🐹', nazwa:'Pika',             f:'sepia(.4) brightness(1.05)', fakt:'Pika suszy latem trawę na słońcu i układa z niej stogi na całą zimę.'}
+    ]
+  }
+,
+  {
+    id:'nocnylas', nazwa:'Nocny Las', opis:'W ciemności las budzi się na nowo: świecą oczy i punkciki świetlików.',
+    trawa:['#31502f','#2a4629'], krzak:'#264024', drzewo:'#16301c', pien:'#3d2c1c',
+    woda:'#1f4a60', skala:'#4a5250', rodzaj:'swierk', noc:true,
+    zwierzeta:[
+      {em:'🦇', nazwa:'Gacek', fakt:'Gacek ma uszy prawie tak długie jak całe ciało i chowa je pod skrzydła, gdy śpi.'},
+      {em:'🦉', nazwa:'Puszczyk', f:'sepia(.4) brightness(.85)', fakt:'To jego hukanie słychać w filmach, gdy robi się strasznie. Woła nawet na kilometr.'},
+      {em:'🪲', nazwa:'Świetlik', f:'hue-rotate(60deg) brightness(1.3)', fakt:'Świetlik świeci brzuchem, a jego światło jest zimne i wcale nie parzy.'},
+      {em:'🐈', nazwa:'Ryś', f:'sepia(.55) saturate(1.4)', fakt:'Ryś ma na uszach czarne pędzelki, które działają jak anteny do słuchania.'},
+      {em:'🦝', nazwa:'Kuna', f:'sepia(.5) brightness(.8)', fakt:'Kuna schodzi z drzewa głową w dół, bo potrafi obrócić stopy o pół obrotu.'}
+    ]
+  },
+  {
+    id:'klify', nazwa:'Klify Morskie', opis:'Strome skały nad falami, wrzask tysięcy ptaków i wiatr od morza.',
+    trawa:['#7f9a6a','#748f5f'], krzak:'#5f7a4e', drzewo:'#4a6b44', pien:'#6a5f4a',
+    woda:'#2f7f9e', skala:'#a8aca4', rodzaj:'kwiaty',
+    zwierzeta:[
+      {em:'🕊️', nazwa:'Mewa', f:'grayscale(.25)', fakt:'Mewa może pić słoną wodę — ma w głowie filtr, który usuwa z niej sól.'},
+      {em:'🐦', nazwa:'Maskonur', f:'hue-rotate(-25deg) saturate(1.6)', fakt:'Maskonur nosi w dziobie nawet dziesięć rybek naraz i wraca z nimi do norki.'},
+      {em:'🦆', nazwa:'Kormoran', f:'grayscale(.85) brightness(.7)', fakt:'Po nurkowaniu suszy skrzydła na wietrze, bo jego pióra nie są wodoodporne.'},
+      {em:'🦢', nazwa:'Albatros', f:'grayscale(.3)', fakt:'Albatros szybuje tysiące kilometrów, prawie w ogóle nie machając skrzydłami.'},
+      {em:'🦭', nazwa:'Foka szara', f:'grayscale(.45)', fakt:'Foka szara rozpoznaje własne młode po głosie wśród setek innych.'}
+    ]
+  },
+  {
+    id:'kanion', nazwa:'Wielki Kanion', opis:'Czerwone skały, rozgrzane powietrze i rzeka daleko w dole.',
+    trawa:['#c99a6a','#bd8e5e'], krzak:'#a87a4a', drzewo:'#6f8f50', pien:'#8a5a3a',
+    woda:'#4a9ec0', skala:'#b07a5a', rodzaj:'kaktus',
+    zwierzeta:[
+      {em:'🦅', nazwa:'Kondor', f:'brightness(.75) saturate(.6)', fakt:'Rozpiętość skrzydeł kondora to ponad trzy metry — więcej niż wysokość pokoju.'},
+      {em:'🐍', nazwa:'Grzechotnik', f:'sepia(.45)', fakt:'Grzechotka to zrogowaciałe pierścienie — nowy dochodzi po każdej wylince.'},
+      {em:'🦎', nazwa:'Legwan', f:'hue-rotate(35deg)', fakt:'Legwan ma na czubku głowy trzecie oko, którym wyczuwa cień drapieżnika.'},
+      {em:'🐐', nazwa:'Owca gruboroga', f:'sepia(.55) brightness(.9)', fakt:'Barany zderzają się rogami, ale w czaszce mają naturalny amortyzator.'},
+      {em:'🐿️', nazwa:'Wiewiórka skalna', f:'sepia(.4)', fakt:'W upał kładzie się brzuchem na chłodnym kamieniu, żeby się schłodzić.'}
+    ]
+  },
+  {
+    id:'prerie', nazwa:'Prerie', opis:'Trawa po horyzont, kurz spod kopyt i gwizdy z podziemnych miasteczek.',
+    trawa:['#c4b46a','#b8a85e'], krzak:'#9aa04a', drzewo:'#7f8f4a', pien:'#7a6440',
+    woda:'#4a9ec8', skala:'#a89a7a', rodzaj:'kwiaty',
+    zwierzeta:[
+      {em:'🦬', nazwa:'Bizon', fakt:'Bizon waży tonę, a mimo to rozpędza się do 55 kilometrów na godzinę.'},
+      {em:'🐴', nazwa:'Mustang', f:'sepia(.45)', fakt:'Mustangi to potomkowie koni, które uciekły osadnikom i znów zdziczały.'},
+      {em:'🐺', nazwa:'Kojot', f:'sepia(.5) brightness(.9)', fakt:'Kojot dogaduje się z borsukiem i poluje razem z nim na susły.'},
+      {em:'🐹', nazwa:'Piesek preriowy', f:'sepia(.35)', fakt:'Ich podziemne miasta miały kiedyś miliony mieszkańców i własne korytarze-ulice.'},
+      {em:'🦅', nazwa:'Sokół wędrowny', f:'brightness(1.1) sepia(.15)', fakt:'W locie nurkowym osiąga 350 km/h — to najszybsze zwierzę na Ziemi.'}
+    ]
+  },
+  {
+    id:'galapagos', nazwa:'Wyspy Galapagos', opis:'Wulkaniczne wyspy, na których zwierzęta zupełnie nie boją się ludzi.',
+    trawa:['#8a9a6a','#7e8e5e'], krzak:'#6a7a4a', drzewo:'#5f7a44', pien:'#5a4a3a',
+    woda:'#2f9ec0', skala:'#7a7060', rodzaj:'kaktus',
+    zwierzeta:[
+      {em:'🐢', nazwa:'Żółw słoniowy', f:'sepia(.3)', fakt:'Żyje ponad 150 lat i potrafi przetrwać cały rok bez jedzenia i picia.'},
+      {em:'🦎', nazwa:'Legwan morski', f:'grayscale(.55) brightness(.8)', fakt:'Jedyna jaszczurka, która nurkuje w oceanie po glony, a potem kicha solą.'},
+      {em:'🐧', nazwa:'Pingwin równikowy', f:'brightness(1.05) sepia(.2)', fakt:'Jedyny pingwin mieszkający na równiku — chłodzi go zimny prąd morski.'},
+      {em:'🦭', nazwa:'Lew morski', f:'sepia(.5)', fakt:'Lwy morskie zasypiają na plaży jeden na drugim, w wielkiej ciepłej kupie.'},
+      {em:'🦈', nazwa:'Żarłacz młot', f:'brightness(.85)', fakt:'Oczy na końcach głowy dają mu widok prawie dookoła siebie.'}
+    ]
+  },
+  {
+    id:'jaskinia', nazwa:'Wielka Jaskinia', opis:'Wieczna ciemność, kapiąca woda i zwierzęta, którym oczy są niepotrzebne.',
+    trawa:['#6a6a72','#5f5f68'], krzak:'#54545c', drzewo:'#8a94a8', pien:'#4a4a52',
+    woda:'#2a4a6a', skala:'#8a8a94', rodzaj:'lod', noc:true,
+    zwierzeta:[
+      {em:'🦇', nazwa:'Nietoperz podkowiec', f:'brightness(.8)', fakt:'Piszczy nosem, a fałd skóry na pysku kieruje dźwiękiem jak reflektor.'},
+      {em:'🦎', nazwa:'Odmieniec', f:'grayscale(1) brightness(1.7)', fakt:'Ten płaz nie ma oczu, jest biały i potrafi nie jeść przez dziesięć lat.'},
+      {em:'🐟', nazwa:'Ryba jaskiniowa', f:'grayscale(1) brightness(1.5)', fakt:'Straciła wzrok i barwę, bo w kompletnej ciemności były jej zbędne.'},
+      {em:'🕷️', nazwa:'Pająk jaskiniowy', f:'grayscale(.8)', fakt:'Ma nogi dłuższe niż ciało i wyczuwa nimi najlżejszy ruch powietrza.'},
+      {em:'🦐', nazwa:'Krewetka jaskiniowa', f:'grayscale(1) brightness(1.4)', fakt:'Jest przezroczysta — widać przez nią wszystko, co przed chwilą zjadła.'}
+    ]
+  },
+  {
+    id:'namorzyny', nazwa:'Namorzyny', opis:'Las rosnący w słonej wodzie, na korzeniach jak szczudła.',
+    trawa:['#5f7a4a','#546e42'], krzak:'#456038', drzewo:'#2f5c34', pien:'#4a3f2a',
+    woda:'#3f7a72', skala:'#6a7060', rodzaj:'trzcina',
+    zwierzeta:[
+      {em:'🦀', nazwa:'Krab skrzypek', f:'hue-rotate(-30deg)', fakt:'Samiec ma jedno szczypce ogromne i macha nim jak skrzypek smyczkiem.'},
+      {em:'🐟', nazwa:'Poskoczek mułowy', f:'sepia(.55)', fakt:'Ta ryba wychodzi na ląd, chodzi na płetwach i wspina się po korzeniach.'},
+      {em:'🐍', nazwa:'Wąż morski', f:'hue-rotate(150deg)', fakt:'Oddycha powietrzem, ale pod wodą wytrzymuje nawet dwie godziny.'},
+      {em:'🐒', nazwa:'Nosacz', f:'sepia(.4) hue-rotate(-15deg)', fakt:'Im większy nos, tym głośniejszy głos — i tym większe wrażenie robi na stadzie.'},
+      {em:'🕊️', nazwa:'Warzęcha', f:'brightness(1.15)', fakt:'Ma dziób jak łyżka i wodzi nim po wodzie, aż trafi na rybkę.'}
+    ]
+  },
+  {
+    id:'ryzowiska', nazwa:'Pola Ryżowe', opis:'Zalane tarasy, lustro wody i praca od świtu do zmierzchu.',
+    trawa:['#8fb45a','#83a850'], krzak:'#6e9440', drzewo:'#5f8f3c', pien:'#6a5a32',
+    woda:'#5aa8b0', skala:'#9aa06a', rodzaj:'trzcina',
+    zwierzeta:[
+      {em:'🐃', nazwa:'Bawół wodny', fakt:'Bawół chłodzi się, tarzając w błocie — zasycha na nim jak krem z filtrem.'},
+      {em:'🐸', nazwa:'Żaba ryżowa', f:'hue-rotate(35deg)', fakt:'Nocą tysiące żab śpiewają naraz, żeby żadnej nie dało się namierzyć.'},
+      {em:'🕊️', nazwa:'Czapla biała', f:'brightness(1.2)', fakt:'Stoi bez ruchu nawet pół godziny, a potem uderza dziobem w ułamku sekundy.'},
+      {em:'🦆', nazwa:'Kaczka krzyżówka', fakt:'Kaczki zjadają szkodniki między ryżem — rolnicy specjalnie je tam wpuszczają.'},
+      {em:'🐍', nazwa:'Zaskroniec', f:'hue-rotate(85deg)', fakt:'Zaskroniec nie jest groźny, a przestraszony po prostu udaje martwego.'}
+    ]
+  },
+  {
+    id:'motyle', nazwa:'Ogród Motyli', opis:'Ciepła szklarnia pełna kwiatów i skrzydeł we wszystkich kolorach.',
+    trawa:['#9ec45a','#92b850'], krzak:'#7fae4a', drzewo:'#6a9a3c', pien:'#7a6a3a',
+    woda:'#5aa8c8', skala:'#a0a884', rodzaj:'kwiaty',
+    zwierzeta:[
+      {em:'🦋', nazwa:'Paź królowej', f:'hue-rotate(45deg)', fakt:'Jego gąsienica wystawia pomarańczowe różki, które brzydko pachną i odstraszają ptaki.'},
+      {em:'🐝', nazwa:'Trzmiel', f:'brightness(.9) saturate(1.3)', fakt:'Trzmiel lata w chłodzie, w którym pszczoły siedzą w ulu — rozgrzewa się drżeniem mięśni.'},
+      {em:'🪲', nazwa:'Jelonek rogacz', f:'sepia(.5)', fakt:'Samce walczą powiększonymi żuwaczkami jak małe jelenie porożem.'},
+      {em:'🐞', nazwa:'Złotook', f:'hue-rotate(75deg)', fakt:'Jego larwy zjadają setki mszyc — ogrodnicy trzymają je jak straż.'},
+      {em:'🐌', nazwa:'Winniczek', f:'sepia(.35)', fakt:'Na zimę zasypia, zamykając muszlę wapienną pokrywką jak drzwiami.'}
+    ]
+  },
+  {
+    id:'arktyka', nazwa:'Ocean Arktyczny', opis:'Kra, granatowa woda i śpiew, który niesie się pod lodem.',
+    trawa:['#d8e6ee','#cbdce6'], krzak:'#b4cddc', drzewo:'#9ec0d4', pien:'#8fb0c4',
+    woda:'#1f5f8a', skala:'#c0ccd6', rodzaj:'lod',
+    zwierzeta:[
+      {em:'🐋', nazwa:'Narwal', f:'brightness(1.15) saturate(.5)', fakt:'Jego róg to wyrośnięty ząb — potrafi mieć trzy metry długości.'},
+      {em:'🦭', nazwa:'Mors', f:'sepia(.55)', fakt:'Kłami zaczepia się o krę i wciąga na lód swoje dwie tony.'},
+      {em:'🐟', nazwa:'Dorsz', f:'grayscale(.45)', fakt:'Dorsz ma pod pyskiem wąsik, którym wymacuje jedzenie w mule.'},
+      {em:'🦑', nazwa:'Kalmar arktyczny', f:'hue-rotate(165deg)', fakt:'Przestraszony wypuszcza chmurę atramentu i znika w niej jak w dymie.'},
+      {em:'🦈', nazwa:'Rekin grenlandzki', f:'grayscale(.6) brightness(.8)', fakt:'Może żyć 400 lat — to najdłużej żyjący kręgowiec na Ziemi.'}
+    ]
+  },
+  {
+    id:'tropikalna', nazwa:'Tropikalna Wyspa', opis:'Biały piasek, palmy i ciepła laguna po drugiej stronie rafy.',
+    trawa:['#e2d8a0','#d6cc92'], krzak:'#b0b46a', drzewo:'#5f9a4a', pien:'#8a6a42',
+    woda:'#3fb0c8', skala:'#c8b890', rodzaj:'palma',
+    zwierzeta:[
+      {em:'🦀', nazwa:'Krab pustelnik', f:'hue-rotate(-45deg)', fakt:'Mieszka w cudzej muszli i przeprowadza się, gdy tylko znajdzie większą.'},
+      {em:'🐢', nazwa:'Żółw morski', f:'hue-rotate(25deg)', fakt:'Po latach wraca złożyć jaja na tę samą plażę, na której sam się wykluł.'},
+      {em:'🦜', nazwa:'Amazonka', f:'hue-rotate(65deg)', fakt:'Papugi amazonki naśladują głosy tak dobrze, że nabierają się na to psy.'},
+      {em:'🦎', nazwa:'Anolis', f:'hue-rotate(-35deg)', fakt:'Zmienia kolor i rozkłada pod gardłem kolorową flagę, żeby oznaczyć swój teren.'},
+      {em:'🦇', nazwa:'Rudawka', f:'sepia(.45)', fakt:'Ten nietoperz je owoce i roznosi po całej wyspie nasiona nowych drzew.'}
+    ]
+  },
+  {
+    id:'madagaskar', nazwa:'Wyspa Lemurów', opis:'Baobaby, kolczaste zarośla i zwierzęta, których nie ma nigdzie indziej.',
+    trawa:['#b09a5a','#a48e50'], krzak:'#8a7a44', drzewo:'#6f8a44', pien:'#8a6a40',
+    woda:'#4a9ec0', skala:'#a08a68', rodzaj:'akacja',
+    zwierzeta:[
+      {em:'🐒', nazwa:'Lemur katta', f:'grayscale(.7) brightness(1.25)', fakt:'Lemury podnoszą pasiasty ogon jak flagę, żeby nie zgubić się w gąszczu.'},
+      {em:'🦎', nazwa:'Kameleon', f:'hue-rotate(105deg)', fakt:'Kameleon patrzy dwoma oczami w dwie różne strony naraz.'},
+      {em:'🐈', nazwa:'Fossa', f:'sepia(.65)', fakt:'Największy drapieżnik wyspy — goni lemury, biegając po gałęziach.'},
+      {em:'🦔', nazwa:'Tenrek', f:'sepia(.45)', fakt:'Wygląda jak jeż, ale bliżej mu w rodzinie do słonia.'},
+      {em:'🦇', nazwa:'Aj-aj', f:'grayscale(.65)', fakt:'Ma jeden bardzo długi palec, którym wystukuje larwy spod kory.'}
+    ]
+  },
+  {
+    id:'zimowylas', nazwa:'Zimowy Las', opis:'Śnieg na gałęziach, tropy na białym i cisza jak w kościele.',
+    trawa:['#dfe8ee','#d2dde5'], krzak:'#b8c8d2', drzewo:'#3d5c44', pien:'#5a4632',
+    woda:'#3f7f9e', skala:'#c4ccd4', rodzaj:'swierk',
+    zwierzeta:[
+      {em:'🦌', nazwa:'Sarna', f:'sepia(.35) brightness(.95)', fakt:'Zimą chodzi wolniej i mniej — oszczędza siły, bo tłuszczu ma niewiele.'},
+      {em:'🐦', nazwa:'Kruk', f:'brightness(.45) grayscale(.8)', fakt:'Kruk rozwiązuje zagadki lepiej niż małe dzieci i pamięta ludzkie twarze.'},
+      {em:'🐇', nazwa:'Zając bielak', f:'brightness(1.45) saturate(.25)', fakt:'Zimą robi się biały, a jego wielkie łapy działają jak rakiety śnieżne.'},
+      {em:'🦉', nazwa:'Puchacz', f:'sepia(.5) brightness(.9)', fakt:'To największa sowa świata — rozkłada skrzydła na prawie dwa metry.'},
+      {em:'🐺', nazwa:'Wilk', f:'grayscale(.5)', fakt:'Wilki polują całą rodziną i pokonują nocą nawet 50 kilometrów.'}
+    ]
+  },
+  {
+    id:'fiordy', nazwa:'Fiordy', opis:'Strome zbocza i zimne morze wciśnięte głęboko między góry.',
+    trawa:['#6a8a66','#5f7e5c'], krzak:'#4f6e4e', drzewo:'#2f5240', pien:'#4a3f32',
+    woda:'#2f6a8a', skala:'#8a9098', rodzaj:'swierk',
+    zwierzeta:[
+      {em:'🐳', nazwa:'Orka', f:'brightness(.7) contrast(1.35)', fakt:'Orka to nie wieloryb, tylko największy delfin — a każda rodzina ma własny język.'},
+      {em:'🦦', nazwa:'Wydra morska', f:'sepia(.45)', fakt:'Rozbija muszle kamieniem, który nosi w fałdzie skóry pod pachą.'},
+      {em:'🦅', nazwa:'Bielik', f:'brightness(1.15) sepia(.2)', fakt:'Bielik porywa rybę z powierzchni w locie, nie mocząc nawet piór.'},
+      {em:'🐟', nazwa:'Łosoś', f:'hue-rotate(-25deg)', fakt:'Płynie pod prąd setki kilometrów, żeby wrócić do rzeki, w której się urodził.'},
+      {em:'🦭', nazwa:'Foka pospolita', f:'grayscale(.35)', fakt:'Zamyka nozdrza mięśniem i potrafi nurkować przez pół godziny.'}
+    ]
+  },
+  {
+    id:'gobi', nazwa:'Pustynia Gobi', opis:'Kamienna pustynia, mróz nocą i wiatr, który nigdy nie ustaje.',
+    trawa:['#c4b48a','#b8a87e'], krzak:'#a09068', drzewo:'#8a9a5a', pien:'#7a6448',
+    woda:'#4a9ec0', skala:'#a89880', rodzaj:'kaktus',
+    zwierzeta:[
+      {em:'🐫', nazwa:'Wielbłąd dwugarbny', fakt:'Ma dwa garby i gęste futro, bo w Gobi bywa minus trzydzieści stopni.'},
+      {em:'🐴', nazwa:'Koń Przewalskiego', f:'sepia(.5)', fakt:'Jedyny dziki koń świata, którego nigdy nie udało się oswoić.'},
+      {em:'🐁', nazwa:'Skoczek pustynny', f:'sepia(.5)', fakt:'Skacze na tylnych nogach jak mini kangur i nigdy w życiu nie pije wody.'},
+      {em:'🦎', nazwa:'Agama', f:'sepia(.45)', fakt:'W upał unosi na przemian łapy, żeby nie parzyć ich o rozgrzany piasek.'},
+      {em:'🐻', nazwa:'Niedźwiedź gobijski', f:'sepia(.6) brightness(1.15)', fakt:'Zostało ich mniej niż pięćdziesiąt — to najrzadszy niedźwiedź świata.'}
+    ]
+  },
+  {
+    id:'luizjana', nazwa:'Bagna Luizjany', opis:'Cyprysy stojące w wodzie, mgła nad powierzchnią i cisza pełna oczu.',
+    trawa:['#5a7048','#4f6540'], krzak:'#425838', drzewo:'#35502e', pien:'#4a3a26',
+    woda:'#3a5f52', skala:'#6a7060', rodzaj:'paproc',
+    zwierzeta:[
+      {em:'🐊', nazwa:'Aligator', f:'brightness(.8)', fakt:'Aligator wytrzymuje bez jedzenia nawet cały rok.'},
+      {em:'🐢', nazwa:'Żółw jaszczurowaty', f:'sepia(.55) brightness(.85)', fakt:'Ma dziób ostry jak nożyce i szyję, która wystrzeliwuje w bok.'},
+      {em:'🦞', nazwa:'Rak błotny', f:'hue-rotate(-25deg)', fakt:'Buduje w błocie kominy z kulek ziemi i mieszka na samym ich dnie.'},
+      {em:'🕊️', nazwa:'Ibis', f:'hue-rotate(300deg) saturate(1.5)', fakt:'Zagięty dziób pozwala mu szukać jedzenia w mule, w ogóle nie patrząc.'},
+      {em:'🐍', nazwa:'Mokasyn', f:'brightness(.7)', fakt:'Ostrzega, otwierając pysk — w środku jest zupełnie biały.'}
+    ]
+  },
+  {
+    id:'koty', nazwa:'Kraina Wielkich Kotów', opis:'Sucha trawa, cień akacji i pięć par oczu, których nie widać.',
+    trawa:['#c4a86a','#b89c5e'], krzak:'#9a8a4a', drzewo:'#6f8a4a', pien:'#7a6440',
+    woda:'#4a9ec0', skala:'#a09070', rodzaj:'akacja',
+    zwierzeta:[
+      {em:'🐆', nazwa:'Gepard', f:'brightness(1.2) saturate(.85)', fakt:'Rozpędza się do 100 kilometrów na godzinę w trzy sekundy — szybciej niż auto.'},
+      {em:'🐈', nazwa:'Serwal', f:'sepia(.5) brightness(1.1)', fakt:'Skacze trzy metry w górę i łapie ptaki prosto w powietrzu.'},
+      {em:'🐈', nazwa:'Czarna pantera', f:'brightness(.35) contrast(1.2)', fakt:'To lampart albo jaguar z czarnym futrem — w słońcu widać pod nim cętki.'},
+      {em:'🦁', nazwa:'Lwica', f:'saturate(.65) brightness(1.1)', fakt:'W stadzie to lwice polują, a lew pilnuje terenu i głośno ryczy.'},
+      {em:'🐅', nazwa:'Tygrys syberyjski', f:'brightness(1.1)', fakt:'Największy kot świata — sam waży tyle, co trzech dorosłych ludzi.'}
+    ]
+  },
+  {
+    id:'pingwiny', nazwa:'Wyspa Pingwinów', opis:'Kolonia na skraju lodu, wrzask tysięcy dziobów i lodowaty wiatr.',
+    trawa:['#e4eef4','#d7e3ea'], krzak:'#c0d4de', drzewo:'#a8c4d4', pien:'#90aec0',
+    woda:'#2a5f8a', skala:'#c8d4dc', rodzaj:'lod',
+    zwierzeta:[
+      {em:'🐧', nazwa:'Pingwin cesarski', fakt:'Ojciec trzyma jajo na stopach przez dwa miesiące zimy, nic nie jedząc.'},
+      {em:'🦭', nazwa:'Foka Weddella', f:'grayscale(.4)', fakt:'Zębami wygryza w lodzie przeręble, żeby móc pod nim oddychać.'},
+      {em:'🦐', nazwa:'Kryl', f:'hue-rotate(-30deg)', fakt:'Tych małych skorupiaków jest w oceanie więcej niż wszystkich ludzi razem.'},
+      {em:'🕊️', nazwa:'Wydrzyk', f:'brightness(.6) sepia(.4)', fakt:'Wydrzyk nie poluje sam — kradnie zdobycz innym ptakom prosto w locie.'},
+      {em:'🐳', nazwa:'Płetwal błękitny', f:'hue-rotate(180deg) brightness(.9)', fakt:'Największe zwierzę w dziejach Ziemi — dłuższy niż trzy autobusy.'}
+    ]
+  },
+  {
+    id:'rzadkie', nazwa:'Kraina Rzadkich Zwierząt', opis:'Ostatnie ostoje gatunków, których prawie nikt nigdy nie widział.',
+    trawa:['#7fa85a','#749c50'], krzak:'#5f8a44', drzewo:'#4a7a3a', pien:'#6a5232',
+    woda:'#4a9ec0', skala:'#8a9078', rodzaj:'bambus',
+    zwierzeta:[
+      {em:'🦊', nazwa:'Panda czerwona', f:'hue-rotate(-15deg) saturate(1.7)', fakt:'Wcale nie jest pandą — bliżej jej do kuny, a ogon owija sobie jak szalik.'},
+      {em:'🦓', nazwa:'Okapi', f:'sepia(.6)', fakt:'Ma paski jak zebra, ale to najbliższy krewniak żyrafy.'},
+      {em:'🐦', nazwa:'Kiwi', f:'sepia(.65) brightness(.85)', fakt:'Kiwi nie ma skrzydeł, a jego jajo waży jedną czwartą tego, co on sam.'},
+      {em:'🦡', nazwa:'Pancernik kulowaty', f:'sepia(.55) brightness(1.15)', fakt:'Przestraszony zwija się w idealną kulę, twardą jak hełm.'},
+      {em:'🦥', nazwa:'Mrówkojad', f:'sepia(.45) brightness(.85)', fakt:'Ma język dłuższy niż twoje ramię i zjada 30 tysięcy mrówek dziennie.'}
+    ]
+  },
+  {
+    id:'wulkan', nazwa:'Wyspa Wulkaniczna', opis:'Czarny piasek, gorące źródła i życie tuż obok ognia.',
+    trawa:['#6a6058','#5f564e'], krzak:'#544c46', drzewo:'#4a6a3a', pien:'#3a322c',
+    woda:'#3a6a7a', skala:'#7a6a5a', rodzaj:'paproc', noc:true,
+    zwierzeta:[
+      {em:'🦎', nazwa:'Waran z Komodo', f:'brightness(.7) sepia(.35)', fakt:'Największa jaszczurka świata — waży tyle, co dorosły człowiek.'},
+      {em:'🦀', nazwa:'Krab czerwony', f:'saturate(2) hue-rotate(-10deg)', fakt:'Raz w roku miliony krabów maszerują przez całą wyspę do morza.'},
+      {em:'🐦', nazwa:'Nogal', f:'brightness(.6)', fakt:'Nie wysiaduje jaj — zakopuje je w piasku ogrzanym przez wulkan.'},
+      {em:'🕊️', nazwa:'Rybitwa popielata', f:'brightness(1.25)', fakt:'Co roku leci z bieguna na biegun — 70 tysięcy kilometrów.'},
+      {em:'🦂', nazwa:'Skorpion', f:'brightness(.7)', fakt:'Przeżyje rok bez jedzenia i wytrzyma nawet dwa dni pod wodą.'}
+    ]
+  }
+];
+
+const ILE_ZWIERZAT = 5;   // na każdej mapie
+
+/* ---------- KRZYWA TRUDNOŚCI ----------
+   Wszystkie parametry wynikają z numeru krainy, więc każda kolejna jest
+   odrobinę trudniejsza od poprzedniej. Liczba zwierząt zostaje stała (5),
+   bo tyle gatunków ma opisanych każda kraina — rośnie trud ich znalezienia. */
+function trudnosc(idx){
+  const p = KRAINY.length > 1 ? idx / (KRAINY.length - 1) : 0;   // 0 = pierwsza, 1 = ostatnia
+  return {
+    poziom:     1 + Math.floor(idx / 8),          // 1-5, pokazywane na kafelku krainy
+    zasieg:     +(3.4 - 1.2*p).toFixed(2),        // widać 3.4 -> 2.2 kafla dookoła
+    tropy:      Math.round(4 - 2*p),              // 4 -> 2 ślady wokół zwierzęcia
+    wedrowka:   Math.round(2 + 4*p),              // zwierzę odchodzi 2 -> 6 kafli od legowiska
+    przedmioty: Math.round(5 - 3*p),              // 5 -> 2 przedmioty do znalezienia
+    minDystans: Math.round(9 + 6*p),              // zwierzęta chowają się 9 -> 15 kafli od startu
+    poswiata:   p < 0.6                           // od ~25. krainy zwierzęta już nie świecą
+  };
+}
+
+/* ---------- EKWIPUNEK TROPICIELA ---------- */
+const PRZEDMIOTY = {
+  lornetka:{em:'🔭', nazwa:'Lornetka',     opis:'Przez chwilę widzisz dużo dalej.'},
+  kompas:  {em:'🧭', nazwa:'Kompas',       opis:'Wyczuwa najbliższe nietropione zwierzę.'},
+  karma:   {em:'🍎', nazwa:'Karma',        opis:'Zwabia pobliskie zwierzę do ciebie.'},
+  mapa:    {em:'🗺️', nazwa:'Mapa okolicy', opis:'Odsłania duży kawałek terenu.'}
+};
+const TYPY_PRZEDMIOTOW = ['lornetka','kompas','karma','mapa'];
+
+/* =========================================================
+   POSTĘP (localStorage)
+   ========================================================= */
+const KLUCZ = 'tropiciel_zwierzat_v1';
+let postep = {
+  odblok:1, znalezione:{}, mgla:{}, kroki:0,
+  plecak:{lornetka:1, kompas:1, karma:1, mapa:1},   // na start po jednej sztuce
+  zebrane:{},                                       // podniesione przedmioty na mapach
+  zoo:{},                                           // {numerWybiegu: {k:kraina, i:zwierzę}}
+  lektor:true,                                      // czytanie ciekawostek na głos
+  glos:null,                                        // nazwa wybranego głosu lektora
+  sterowanie:null                                   // 'dotyk' | 'klawiatura' | null = wykryj samo
+};
+try{
+  const z = localStorage.getItem(KLUCZ);
+  if(z){
+    const d = JSON.parse(z);
+    if(typeof d.odblok === 'number') postep.odblok = d.odblok;
+    if(d.znalezione) postep.znalezione = d.znalezione;   // {idKrainy: [indeksy zwierząt]}
+    if(d.mgla)       postep.mgla       = d.mgla;         // {idKrainy: zapamiętana mgła}
+    if(d.kroki)      postep.kroki      = d.kroki;
+    if(d.plecak)     postep.plecak     = Object.assign(postep.plecak, d.plecak);
+    if(d.zebrane)    postep.zebrane    = d.zebrane;
+    if(d.zoo)        postep.zoo        = d.zoo;
+    if(d.lektor === false) postep.lektor = false;
+    if(d.glos)       postep.glos       = d.glos;
+    if(d.sterowanie) postep.sterowanie = d.sterowanie;
+  }
+}catch(e){}
+function zapisz(){ try{ localStorage.setItem(KLUCZ, JSON.stringify(postep)); }catch(e){} }
+lektorWl = postep.lektor !== false;
+
+/* niektóre gatunki dzielą emoji z innym (jeleń i renifer, lis i lis polarny…),
+   więc dostają filtr koloru, żeby dało się je odróżnić */
+function emo(z){
+  return z.f ? '<span style="filter:' + z.f + '">' + z.em + '</span>' : z.em;
+}
+
+function znalezioneW(idKrainy){ return postep.znalezione[idKrainy] || []; }
+
+/* Kraina z kompletem zwierząt otwiera następną. Wywołujemy to zarówno przy
+   znalezieniu ostatniego zwierzaka, jak i przy wejściu na ekran map — dzięki
+   temu naprawiają się też starsze zapisy, w których odblokowanie przepadło. */
+function odblokujZdobyte(){
+  let zmiana = false;
+  KRAINY.forEach((K, i) => {
+    if(znalezioneW(K.id).length >= ILE_ZWIERZAT && postep.odblok < i + 2){
+      postep.odblok = Math.min(KRAINY.length, i + 2);
+      zmiana = true;
+    }
+  });
+  if(zmiana) zapisz();
+  return zmiana;
+}
+function czyZnalezione(idKrainy, i){ return znalezioneW(idKrainy).indexOf(i) >= 0; }
+function razemZnalezionych(){
+  return KRAINY.reduce((s,k) => s + znalezioneW(k.id).length, 0);
+}
+
+/* =========================================================
+   GENEROWANIE MAPY
+   Każda kraina ma swoje ziarno, więc mapa zawsze wygląda tak samo
+   i zapamiętana mgła pasuje do terenu po powrocie do gry.
+   ========================================================= */
+const TRAWA=0, KRZAK=1, PRZESZKODA=2, WODA=3, SCIEZKA=4, PLOT=5, WYBIEG=6;
+
+function przejezdny(k){ return k === TRAWA || k === KRZAK || k === SCIEZKA; }
+
+function generujMape(idx){
+  const K = KRAINY[idx], D = trudnosc(idx);
+  const rng = mulberry32(1000 + idx*7919);
+
+  /* --- 1. teren z gładkiego szumu: duże plamy + drobniejsze detale --- */
+  function warstwa(komorka){
+    const gw = Math.ceil(MW/komorka)+2, gh = Math.ceil(MH/komorka)+2;
+    const p = new Float32Array(gw*gh);
+    for(let i=0;i<p.length;i++) p[i] = rng();
+    return (x,y) => {
+      const fx = x/komorka, fy = y/komorka;
+      const x0 = Math.min(gw-2, Math.floor(fx)), y0 = Math.min(gh-2, Math.floor(fy));
+      const tx = fx-x0, ty = fy-y0;
+      const sx = tx*tx*(3-2*tx), sy = ty*ty*(3-2*ty);      // wygładzenie
+      const a = p[y0*gw+x0],     b = p[y0*gw+x0+1];
+      const c = p[(y0+1)*gw+x0], d = p[(y0+1)*gw+x0+1];
+      const g1 = a+(b-a)*sx, g2 = c+(d-c)*sx;
+      return g1 + (g2-g1)*sy;
+    };
+  }
+  const duze = warstwa(6), drobne = warstwa(2.5);
+
+  const kafle = new Uint8Array(MW*MH);
+  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
+    const v = duze(x,y)*0.72 + drobne(x,y)*0.28;
+    let k = TRAWA;
+    if(v < K.progWody)        k = WODA;
+    else if(v > K.progLasu)   k = PRZESZKODA;
+    else if(v > K.progKrzaka) k = KRZAK;
+    // pojedyncze drzewa i głazy rozsiane po terenie
+    if(k === TRAWA && rng() < 0.05) k = PRZESZKODA;
+    if(k === TRAWA && rng() < 0.09) k = KRZAK;
+    kafle[y*MW+x] = k;
+  }
+  // ramka nie do przejścia — mapa ma swoje granice
+  for(let x=0;x<MW;x++){ kafle[x] = PRZESZKODA; kafle[(MH-1)*MW+x] = PRZESZKODA; }
+  for(let y=0;y<MH;y++){ kafle[y*MW] = PRZESZKODA; kafle[y*MW+MW-1] = PRZESZKODA; }
+
+  /* --- 2. punkt startowy: środek NAJWIĘKSZEGO spójnego kawałka lądu.
+     Bez tego przy pechowym losowaniu gracz mógłby wylądować w kieszeni
+     odciętej wodą i lasem, z której nie da się nigdzie dojść. --- */
+  const skladowa = new Int32Array(MW*MH).fill(-1);
+  let numer = 0, najwiekszaNr = -1, najwiekszaIle = 0;
+  for(let i=0;i<kafle.length;i++){
+    if(skladowa[i] >= 0 || !przejezdny(kafle[i])) continue;
+    const kol = [i]; skladowa[i] = numer;
+    for(let g=0; g<kol.length; g++){
+      const j = kol[g], jx = j%MW, jy = (j/MW)|0;
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+        const nx = jx+dx, ny = jy+dy;
+        if(nx<0||ny<0||nx>=MW||ny>=MH) continue;
+        const k2 = ny*MW+nx;
+        if(skladowa[k2] >= 0 || !przejezdny(kafle[k2])) continue;
+        skladowa[k2] = numer; kol.push(k2);
+      }
+    }
+    if(kol.length > najwiekszaIle){ najwiekszaIle = kol.length; najwiekszaNr = numer; }
+    numer++;
+  }
+  let start = null, najl = 1e9;
+  for(let y=1;y<MH-1;y++) for(let x=1;x<MW-1;x++){
+    if(skladowa[y*MW+x] !== najwiekszaNr) continue;
+    const d = (x-MW/2)*(x-MW/2) + (y-MH/2)*(y-MH/2);
+    if(d < najl){ najl = d; start = {x,y}; }
+  }
+  // wokół startu robimy małą polanę, żeby zawsze było gdzie ruszyć
+  for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
+    const x = start.x+dx, y = start.y+dy;
+    if(x>0 && y>0 && x<MW-1 && y<MH-1 && kafle[y*MW+x] !== WODA) kafle[y*MW+x] = TRAWA;
+  }
+
+  /* --- 3. co jest osiągalne ze startu (BFS) --- */
+  const dyst = odlegloscOd(kafle, start.x, start.y);
+
+  /* --- 4. zwierzęta: daleko od startu i daleko od siebie --- */
+  let kandydaci = [];
+  const zbierz = minD => {
+    const t = [];
+    for(let y=1;y<MH-1;y++) for(let x=1;x<MW-1;x++){
+      const d = dyst[y*MW+x];
+      if(d >= minD && d < 1e8) t.push({x,y,d});
+    }
+    return t;
+  };
+  kandydaci = zbierz(D.minDystans);
+  if(kandydaci.length < 30) kandydaci = zbierz(4);   // ciasna mapa — luzujemy wymagania
+  if(kandydaci.length < ILE_ZWIERZAT) kandydaci = zbierz(1);
+  // tasujemy deterministycznie
+  for(let i=kandydaci.length-1;i>0;i--){
+    const j = Math.floor(rng()*(i+1));
+    const t = kandydaci[i]; kandydaci[i] = kandydaci[j]; kandydaci[j] = t;
+  }
+  const zwierzeta = [];
+  let minOdstep = 9;
+  while(zwierzeta.length < ILE_ZWIERZAT && minOdstep > -1){
+    for(const c of kandydaci){
+      if(zwierzeta.length >= ILE_ZWIERZAT) break;
+      if(zwierzeta.some(z => Math.abs(z.x-c.x) + Math.abs(z.y-c.y) < minOdstep)) continue;
+      const i = zwierzeta.length;
+      zwierzeta.push(Object.assign({}, K.zwierzeta[i], {
+        i, x:c.x, y:c.y, domX:c.x, domY:c.y,
+        znalezione: czyZnalezione(K.id, i), tropione:false, ruch:0
+      }));
+    }
+    minOdstep -= 2;
+  }
+
+  /* --- 5. ślady: 4 tropy wokół każdego zwierzęcia --- */
+  const slady = [];
+  zwierzeta.forEach(z => {
+    const d2 = odlegloscOd(kafle, z.x, z.y);
+    const wokol = [];
+    for(let y=1;y<MH-1;y++) for(let x=1;x<MW-1;x++){
+      const d = d2[y*MW+x];
+      if(d >= 2 && d <= 6) wokol.push({x,y});
+    }
+    for(let n=0;n<D.tropy && wokol.length;n++){
+      const j = Math.floor(rng()*wokol.length);
+      const p = wokol.splice(j,1)[0];
+      if(slady.some(s => s.x===p.x && s.y===p.y)) continue;
+      slady.push({x:p.x, y:p.y, zw:z.i, obrot: rng()*0.8-0.4});
+    }
+  });
+
+  /* --- 5b. przedmioty tropiciela porozrzucane po okolicy --- */
+  const przedmioty = [];
+  const zebraneTu = postep.zebrane[K.id] || [];
+  const poleNaRzecz = kandydaci.filter(c => c.d >= 4);
+  for(let i=0; i<D.przedmioty && poleNaRzecz.length; i++){
+    const p = poleNaRzecz[Math.floor(rng()*poleNaRzecz.length)];
+    const typ = TYPY_PRZEDMIOTOW[Math.floor(rng()*TYPY_PRZEDMIOTOW.length)];
+    if(przedmioty.some(q => q.x === p.x && q.y === p.y)) continue;
+    if(zwierzeta.some(z => z.x === p.x && z.y === p.y)) continue;
+    przedmioty.push({i, x:p.x, y:p.y, typ, wziety: zebraneTu.indexOf(i) >= 0});
+  }
+
+  /* --- 6. mgła: wczytana z zapisu albo świeża --- */
+  const mgla = new Uint8Array(MW*MH);
+  const zapis = (postep.mgla || {})[K.id];
+  if(typeof zapis === 'string' && zapis.length === MW*MH){
+    for(let i=0;i<mgla.length;i++) mgla[i] = zapis.charCodeAt(i) === 49 ? 1 : 0;
+  }
+
+  return {idx, K, kafle, start, zwierzeta, slady, przedmioty, mgla, dyst, trud:D};
+}
+
+/* BFS po przejezdnych kaflach — zwraca tablicę odległości (1e9 = nieosiągalne) */
+function odlegloscOd(kafle, sx, sy){
+  const d = new Float64Array(MW*MH).fill(1e9);
+  const kol = new Int32Array(MW*MH);
+  let gl=0, kn=0;
+  d[sy*MW+sx] = 0; kol[kn++] = sy*MW+sx;
+  while(gl < kn){
+    const i = kol[gl++], x = i%MW, y = (i/MW)|0;
+    const nast = [[x+1,y],[x-1,y],[x,y+1],[x,y-1]];
+    for(const [nx,ny] of nast){
+      if(nx<0||ny<0||nx>=MW||ny>=MH) continue;
+      const j = ny*MW+nx;
+      if(d[j] < 1e8 || !przejezdny(kafle[j])) continue;
+      d[j] = d[i]+1; kol[kn++] = j;
+    }
+  }
+  return d;
+}
+
+/* najkrótsza droga z (sx,sy) do (cx,cy) jako lista kroków */
+function znajdzDroge(kafle, sx, sy, cx, cy){
+  if(!przejezdny(kafle[cy*MW+cx])) return null;
+  const d = odlegloscOd(kafle, cx, cy);         // liczymy od celu, potem schodzimy w dół
+  if(d[sy*MW+sx] > 1e8) return null;
+  const droga = [];
+  let x = sx, y = sy;
+  let bezpiecznik = MW*MH;
+  while((x !== cx || y !== cy) && bezpiecznik-- > 0){
+    let naj = null, najD = d[y*MW+x];
+    for(const [nx,ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]){
+      if(nx<0||ny<0||nx>=MW||ny>=MH) continue;
+      if(d[ny*MW+nx] < najD){ najD = d[ny*MW+nx]; naj = {x:nx,y:ny}; }
+    }
+    if(!naj) break;
+    droga.push(naj); x = naj.x; y = naj.y;
+  }
+  return droga;
+}
+
+/* =========================================================
+   RYSOWANIE TERENU
+   ========================================================= */
+function rysujDrzewo(sx, sy, rodzaj, K, s){
+  const cx = sx + T/2, dol = sy + T - 5;
+  if(rodzaj === 'swierk'){
+    ctx.fillStyle = K.pien; ctx.fillRect(cx-3, dol-10, 6, 12);
+    ctx.fillStyle = K.drzewo;
+    for(let i=0;i<3;i++){
+      const w = 20 - i*4, h = 15;
+      ctx.beginPath();
+      ctx.moveTo(cx, dol-16-i*10-h); ctx.lineTo(cx-w, dol-10-i*10); ctx.lineTo(cx+w, dol-10-i*10);
+      ctx.closePath(); ctx.fill();
+    }
+  } else if(rodzaj === 'akacja'){
+    ctx.fillStyle = K.pien; ctx.fillRect(cx-3, dol-20, 6, 22);
+    ctx.fillStyle = K.drzewo;
+    ctx.beginPath(); ctx.ellipse(cx, dol-24, 20, 9, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx-7, dol-30, 12, 7, 0, 0, Math.PI*2); ctx.fill();
+  } else if(rodzaj === 'palma'){
+    ctx.strokeStyle = K.pien; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(cx, dol); ctx.quadraticCurveTo(cx-4, dol-18, cx+2, dol-30); ctx.stroke();
+    ctx.fillStyle = K.drzewo;
+    for(let i=0;i<5;i++){
+      const a = -Math.PI/2 + (i-2)*0.6;
+      ctx.save(); ctx.translate(cx+2, dol-30); ctx.rotate(a);
+      ctx.beginPath(); ctx.ellipse(0, -11, 5, 13, 0, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+  } else if(rodzaj === 'kaktus'){
+    ctx.fillStyle = K.drzewo; ctx.lineCap = 'round';
+    ctx.strokeStyle = K.drzewo; ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.moveTo(cx, dol); ctx.lineTo(cx, dol-28); ctx.stroke();
+    ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(cx-1, dol-14); ctx.lineTo(cx-10, dol-14); ctx.lineTo(cx-10, dol-22); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+1, dol-19); ctx.lineTo(cx+9, dol-19); ctx.lineTo(cx+9, dol-25); ctx.stroke();
+  } else if(rodzaj === 'lod'){
+    ctx.fillStyle = '#bcd9ea';
+    ctx.beginPath();
+    ctx.moveTo(cx-14, dol); ctx.lineTo(cx-8, dol-26); ctx.lineTo(cx+2, dol-34);
+    ctx.lineTo(cx+11, dol-22); ctx.lineTo(cx+14, dol); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#eaf6ff';
+    ctx.beginPath();
+    ctx.moveTo(cx+2, dol-34); ctx.lineTo(cx+11, dol-22); ctx.lineTo(cx+14, dol); ctx.lineTo(cx+5, dol);
+    ctx.closePath(); ctx.fill();
+  } else if(rodzaj === 'trzcina'){
+    ctx.strokeStyle = K.drzewo; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    for(let i=0;i<4;i++){
+      const ox = cx - 12 + i*8, wys = 20 + ((i*7 + s*13)%12);
+      ctx.beginPath(); ctx.moveTo(ox, dol); ctx.lineTo(ox + (i%2?3:-3), dol-wys); ctx.stroke();
+      ctx.fillStyle = '#8a6a3a';
+      ctx.beginPath(); ctx.ellipse(ox + (i%2?3:-3), dol-wys-3, 2.4, 5, 0, 0, Math.PI*2); ctx.fill();
+    }
+  } else if(rodzaj === 'bambus'){
+    ctx.strokeStyle = K.drzewo; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    for(let i=0;i<3;i++){
+      const ox = cx - 10 + i*10, wys = 26 + ((i*11 + s*17)%10);
+      ctx.beginPath(); ctx.moveTo(ox, dol); ctx.lineTo(ox, dol-wys); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1.5;
+      for(let j=1;j<3;j++){
+        ctx.beginPath(); ctx.moveTo(ox-3, dol-wys*j/3); ctx.lineTo(ox+3, dol-wys*j/3); ctx.stroke();
+      }
+      ctx.strokeStyle = K.drzewo; ctx.lineWidth = 5;
+    }
+  } else if(rodzaj === 'kwiaty'){
+    const kolory = ['#ff8fb1','#ffd166','#c68fff','#fff1a8'];
+    for(let i=0;i<4;i++){
+      const ox = cx - 14 + i*9, wys = 15 + ((i*13 + s*29)%12), gx = ox + (i%2 ? 2 : -2);
+      ctx.strokeStyle = K.drzewo; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(ox, dol); ctx.lineTo(gx, dol-wys); ctx.stroke();
+      ctx.fillStyle = kolory[(i + Math.floor(s*4)) % 4];
+      ctx.beginPath(); ctx.arc(gx, dol-wys-3, 4.6, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff6c9';
+      ctx.beginPath(); ctx.arc(gx, dol-wys-3, 1.8, 0, Math.PI*2); ctx.fill();
+    }
+  } else if(rodzaj === 'jablon'){
+    ctx.fillStyle = K.pien; ctx.fillRect(cx-4, dol-16, 8, 18);
+    ctx.fillStyle = K.drzewo;
+    ctx.beginPath(); ctx.arc(cx-10, dol-20, 9, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+10, dol-20, 9, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, dol-27, 15, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.15)';
+    ctx.beginPath(); ctx.arc(cx-5, dol-32, 6, 0, Math.PI*2); ctx.fill();
+    if(s > 0.45){
+      ctx.fillStyle = '#e8563f';
+      for(let i=0;i<3;i++){
+        const ax = cx - 8 + i*8, ay = dol - 22 - ((i*7 + s*19)%10);
+        ctx.beginPath(); ctx.arc(ax, ay, 2.8, 0, Math.PI*2); ctx.fill();
+      }
+    }
+  } else if(rodzaj === 'koral'){
+    const kolory = ['#ff8fa3','#ffb26b','#c08fe0','#7fe0d0'];
+    const kol = kolory[Math.floor(s*4) % 4];
+    ctx.strokeStyle = kol; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(cx, dol); ctx.lineTo(cx, dol-13); ctx.stroke();
+    ctx.lineWidth = 4;
+    for(let i=0;i<3;i++){
+      const a = -Math.PI/2 + (i-1)*0.75;
+      ctx.beginPath();
+      ctx.moveTo(cx, dol-13);
+      ctx.lineTo(cx + Math.cos(a)*14, dol-13 + Math.sin(a)*14);
+      ctx.stroke();
+      ctx.fillStyle = kol;
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a)*15, dol-13 + Math.sin(a)*15, 3.4, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.25)';
+    ctx.beginPath(); ctx.arc(cx-5, dol-21, 2.8, 0, Math.PI*2); ctx.fill();
+  } else if(rodzaj === 'paproc'){
+    ctx.strokeStyle = K.pien; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(cx, dol); ctx.lineTo(cx, dol-12); ctx.stroke();
+    for(let i=0;i<5;i++){
+      const a = -Math.PI/2 + (i-2)*0.55;
+      const dx = Math.cos(a)*21, dy = Math.sin(a)*21;
+      ctx.strokeStyle = K.drzewo; ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, dol-12);
+      ctx.quadraticCurveTo(cx + dx*0.5, dol-12 + dy*0.95, cx + dx, dol-12 + dy);
+      ctx.stroke();
+      ctx.lineWidth = 1.5;
+      for(let j=1;j<=3;j++){
+        const px = cx + dx*j/3.6, py = dol-12 + dy*j/3.2;
+        ctx.beginPath(); ctx.moveTo(px, py);
+        ctx.lineTo(px + Math.cos(a+1.25)*5, py + Math.sin(a+1.25)*5); ctx.stroke();
+      }
+    }
+  }
+}
+
+function rysujSkale(sx, sy, K, s){
+  const cx = sx + T/2, dol = sy + T - 6;
+  ctx.fillStyle = K.skala;
+  ctx.beginPath();
+  ctx.moveTo(cx-16, dol); ctx.lineTo(cx-10, dol-14); ctx.lineTo(cx-1, dol-19);
+  ctx.lineTo(cx+11, dol-12); ctx.lineTo(cx+16, dol); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,.16)';
+  ctx.beginPath();
+  ctx.moveTo(cx-1, dol-19); ctx.lineTo(cx+11, dol-12); ctx.lineTo(cx+16, dol); ctx.lineTo(cx+2, dol);
+  ctx.closePath(); ctx.fill();
+  if(s > 0.6){
+    ctx.fillStyle = 'rgba(255,255,255,.22)';
+    ctx.beginPath(); ctx.ellipse(cx-6, dol-13, 5, 3, -0.3, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+function rysujKafel(k, sx, sy, x, y, K){
+  const s = hash2(x,y);
+  if(k === SCIEZKA){                       // alejka w zoo
+    ctx.fillStyle = '#cdb387'; ctx.fillRect(sx, sy, T, T);
+    ctx.fillStyle = 'rgba(120,90,50,.18)';
+    for(let i=0;i<5;i++){
+      const gx = sx + ((s*97*(i+1))%1)*42, gy = sy + ((s*61*(i+2))%1)*42;
+      ctx.fillRect(gx, gy, 5, 3);
+    }
+    return;
+  }
+  if(k === WYBIEG){                        // wnętrze wybiegu
+    ctx.fillStyle = '#8db869'; ctx.fillRect(sx, sy, T, T);
+    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 2;
+    for(let i=0;i<3;i++){
+      const gx = sx + 8 + ((s*53*(i+1))%1)*30, gy = sy + 10 + ((s*89*(i+3))%1)*28;
+      ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx+2, gy-6); ctx.stroke();
+    }
+    return;
+  }
+  if(k === PLOT){                          // płot dookoła wybiegu
+    ctx.fillStyle = '#8db869'; ctx.fillRect(sx, sy, T, T);
+    ctx.fillStyle = '#a3763f';
+    ctx.fillRect(sx, sy+16, T, 5);
+    ctx.fillRect(sx, sy+30, T, 5);
+    ctx.fillStyle = '#8a6134';
+    ctx.fillRect(sx+5, sy+8, 6, 34);
+    ctx.fillRect(sx+T-11, sy+8, 6, 34);
+    return;
+  }
+  if(k === WODA){
+    ctx.fillStyle = K.woda; ctx.fillRect(sx, sy, T, T);
+    ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    for(let i=0;i<2;i++){
+      const fy = sy + 14 + i*18 + Math.sin(czas*1.6 + x + y + i)*2.5;
+      ctx.beginPath();
+      ctx.moveTo(sx+8, fy); ctx.quadraticCurveTo(sx+T/2, fy-4, sx+T-8, fy); ctx.stroke();
+    }
+    return;
+  }
+  // podłoże
+  ctx.fillStyle = K.trawa[s > 0.5 ? 0 : 1];
+  ctx.fillRect(sx, sy, T, T);
+  // kępki trawy
+  ctx.strokeStyle = 'rgba(0,0,0,.10)'; ctx.lineWidth = 2;
+  for(let i=0;i<3;i++){
+    const gx = sx + 6 + ((s*97*(i+1))%1)*36, gy = sy + 8 + ((s*53*(i+2))%1)*32;
+    ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx+2, gy-5); ctx.stroke();
+  }
+  if(k === KRZAK){
+    ctx.fillStyle = K.krzak;
+    ctx.beginPath(); ctx.arc(sx+18, sy+30, 11, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx+30, sy+27, 13, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx+24, sy+20, 10, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.14)';
+    ctx.beginPath(); ctx.arc(sx+27, sy+21, 5, 0, Math.PI*2); ctx.fill();
+  } else if(k === PRZESZKODA){
+    if(s < 0.28) rysujSkale(sx, sy, K, s);
+    else rysujDrzewo(sx, sy, K.rodzaj, K, s);
+  }
+}
+
+/* progi terenu — ile w danej krainie jest wody, krzaków i drzew */
+const PROGI = {
+  sawanna:  {woda:0.20, krzak:0.62, las:0.78},
+  dzungla:  {woda:0.26, krzak:0.50, las:0.66},
+  las:      {woda:0.24, krzak:0.56, las:0.70},
+  pustynia: {woda:0.14, krzak:0.72, las:0.82},
+  gory:     {woda:0.22, krzak:0.64, las:0.72},
+  lod:      {woda:0.30, krzak:0.68, las:0.80},
+  mokradla: {woda:0.36, krzak:0.58, las:0.76},
+  bambus:   {woda:0.22, krzak:0.48, las:0.66},
+  laka:     {woda:0.18, krzak:0.52, las:0.76},
+  zagroda:  {woda:0.16, krzak:0.62, las:0.80},
+  rafa:     {woda:0.32, krzak:0.54, las:0.72},
+  tajga:    {woda:0.26, krzak:0.54, las:0.66},
+  kangury:  {woda:0.22, krzak:0.62, las:0.76},
+  zaginione:{woda:0.28, krzak:0.50, las:0.68},
+  glebiny:  {woda:0.36, krzak:0.56, las:0.74},
+  park:     {woda:0.20, krzak:0.58, las:0.78},
+  rzeka:    {woda:0.38, krzak:0.56, las:0.74},
+  malpy:    {woda:0.26, krzak:0.48, las:0.64},
+  tundra:   {woda:0.28, krzak:0.66, las:0.78},
+  dach:     {woda:0.20, krzak:0.66, las:0.70}
+,
+  nocnylas: {woda:0.24, krzak:0.52, las:0.66},
+  klify:    {woda:0.34, krzak:0.60, las:0.74},
+  kanion:   {woda:0.14, krzak:0.66, las:0.74},
+  prerie:   {woda:0.18, krzak:0.58, las:0.80},
+  galapagos:{woda:0.30, krzak:0.60, las:0.76},
+  jaskinia: {woda:0.26, krzak:0.58, las:0.68},
+  namorzyny:{woda:0.36, krzak:0.52, las:0.70},
+  ryzowiska:{woda:0.34, krzak:0.58, las:0.78},
+  motyle:   {woda:0.16, krzak:0.46, las:0.72},
+  arktyka:  {woda:0.36, krzak:0.66, las:0.78},
+  tropikalna:{woda:0.30, krzak:0.56, las:0.74},
+  madagaskar:{woda:0.20, krzak:0.56, las:0.72},
+  zimowylas:{woda:0.22, krzak:0.56, las:0.66},
+  fiordy:   {woda:0.34, krzak:0.60, las:0.70},
+  gobi:     {woda:0.12, krzak:0.70, las:0.80},
+  luizjana: {woda:0.38, krzak:0.54, las:0.72},
+  koty:     {woda:0.20, krzak:0.60, las:0.76},
+  pingwiny: {woda:0.32, krzak:0.68, las:0.80},
+  rzadkie:  {woda:0.24, krzak:0.50, las:0.66},
+  wulkan:   {woda:0.26, krzak:0.60, las:0.72}
+};
+KRAINY.forEach(K => {
+  const p = PROGI[K.id];
+  K.progWody = p.woda; K.progKrzaka = p.krzak; K.progLasu = p.las;
+});
+
+/* =========================================================
+   STAN GRY
+   ========================================================= */
+let M = null;                 // aktualna mapa
+let P = null;                 // gracz
+let kam = {x:0, y:0};
+let czas = 0, ostatni = 0, animId = 0;
+let kolejka = [];             // zaplanowane kroki po kliknięciu w mapę
+let panelOtwarty = false;
+let brudna = false;           // mgła czeka na zapis
+let licznikHud = 0;
+const klawisze = {};
+const KROK = 10;              // ile klatek trwa przejście na sąsiedni kafel
+
+function zaokrRect(x,y,w,h,r){
+  ctx.beginPath();
+  if(ctx.roundRect){ ctx.roundRect(x,y,w,h,r); }
+  else {
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+  }
+  ctx.fill();
+}
+
+function zapiszMgle(){
+  if(!M) return;
+  let s = '';
+  for(let i=0;i<M.mgla.length;i++) s += M.mgla[i] ? '1' : '0';
+  postep.mgla[M.K.id] = s;
+  brudna = false;
+}
+
+function procentOdkryty(){
+  let n = 0;
+  for(let i=0;i<M.mgla.length;i++) if(M.mgla[i]) n++;
+  return Math.round(n / M.mgla.length * 100);
+}
+
+/* =========================================================
+   START MAPY
+   ========================================================= */
+function startMapy(idx){
+  M = generujMape(idx);
+  P = {x:M.start.x, y:M.start.y, px:M.start.x*T, py:M.start.y*T, kier:1, ruch:null};
+  kolejka = [];
+  panelOtwarty = false;
+  schowajPanel();
+  odsloniec(true);
+  ustawKamere(true);
+  document.getElementById('tytulMapy').textContent = (idx+1) + '. ' + M.K.nazwa;
+  ekran('ekranGry');
+  document.getElementById('plecak').style.display = '';
+  document.getElementById('plecakDotyk').style.display = '';
+  rysujTropy();
+  rysujPlecak();
+  aktualizujInfo();
+  sfx.mapa();
+  // dziecko, które nie czyta, musi usłyszeć, co ma robić
+  const zostalo = ILE_ZWIERZAT - M.zwierzeta.filter(z => z.znalezione).length;
+  setTimeout(() => mow('Kraina ' + M.K.nazwa + '. ' + (zostalo > 0
+    ? 'Do znalezienia: ' + zostalo + ' ' + odmiana(zostalo,'zwierzę','zwierzęta','zwierząt') +
+      '. Chodź i szukaj śladów łapek.'
+    : 'Tę krainę masz już zbadaną.')), 350);
+  ostatni = 0;
+  if(!animId) animId = requestAnimationFrame(petla);
+}
+
+/* odsłania mgłę wokół gracza i sprawdza, czy nie natknął się na tropy */
+function odsloniec(cicho){
+  const zs = zasieg(), r = Math.ceil(zs);
+  for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){
+    if(dx*dx + dy*dy > zs*zs) continue;
+    const x = P.x+dx, y = P.y+dy;
+    if(x<0||y<0||x>=MW||y>=MH) continue;
+    const i = y*MW+x;
+    if(!M.mgla[i]){ M.mgla[i] = 1; brudna = true; }
+  }
+  for(const s of M.slady){
+    if(!M.mgla[s.y*MW + s.x]) continue;
+    const z = M.zwierzeta[s.zw];
+    if(z && !z.tropione && !z.znalezione){
+      z.tropione = true;
+      if(!cicho){
+        sfx.trop();
+        M.komunikat = {txt:'🐾 Świeże tropy! Ktoś tędy przechodził…', t:2.6};
+        mow('Świeże tropy! Idź w stronę strzałki, ktoś tu jest blisko.');
+      }
+      rysujTropy();
+    }
+  }
+}
+
+function ustawKamere(odrazu){
+  const celX = clamp(P.px + T/2 - W/2, 0, MW*T - W);
+  const celY = clamp(P.py + T/2 - H/2, 0, MH*T - H);
+  if(odrazu){ kam.x = celX; kam.y = celY; }
+  else { kam.x += (celX - kam.x)*0.20; kam.y += (celY - kam.y)*0.20; }
+}
+
+/* =========================================================
+   RUCH
+   ========================================================= */
+function sprobujKrok(dx, dy){
+  if(P.ruch || panelOtwarty) return false;
+  const nx = P.x+dx, ny = P.y+dy;
+  if(nx<0||ny<0||nx>=MW||ny>=MH) return false;
+  if(!przejezdny(M.kafle[ny*MW+nx])){ sfx.blok(); return false; }
+  if(dx) P.kier = dx > 0 ? 1 : -1;
+  P.ruch = {x0:P.x, y0:P.y, x1:nx, y1:ny, t:0};
+  return true;
+}
+
+function zakonczKrok(){
+  P.x = P.ruch.x1; P.y = P.ruch.y1;
+  P.px = P.x*T; P.py = P.y*T;
+  P.ruch = null;
+  postep.kroki++;
+  sfx.krok();
+  if(M.zoo){ sprawdzTabliczke(); return; }
+  odsloniec(false);
+  podnies();
+  sprawdzOdkrycie();
+}
+
+/* podnoszenie przedmiotu, na którym stoimy */
+function podnies(){
+  for(const p of M.przedmioty){
+    if(p.wziety || p.x !== P.x || p.y !== P.y) continue;
+    p.wziety = true;
+    postep.plecak[p.typ] = (postep.plecak[p.typ] || 0) + 1;
+    const lista = (postep.zebrane[M.K.id] || []).slice();
+    lista.push(p.i);
+    postep.zebrane[M.K.id] = lista;
+    zapisz(); sfx.trop();
+    M.komunikat = {txt: PRZEDMIOTY[p.typ].em + '  Znalazłeś: ' + PRZEDMIOTY[p.typ].nazwa + '!', t:2.8};
+    rysujPlecak();
+  }
+}
+
+function sprawdzOdkrycie(){
+  for(const z of M.zwierzeta){
+    if(z.znalezione) continue;
+    if(Math.abs(z.x-P.x) + Math.abs(z.y-P.y) <= 1){
+      z.znalezione = true; z.tropione = true;
+      const lista = znalezioneW(M.K.id).slice();
+      if(lista.indexOf(z.i) < 0) lista.push(z.i);
+      postep.znalezione[M.K.id] = lista;
+      kolejka = [];
+      zapiszMgle(); zapisz();
+      odblokujZdobyte();
+      sfx.odkrycie();
+      rysujTropy(); aktualizujInfo();
+      pokazZwierze(z);
+      return;
+    }
+  }
+}
+
+function ruszajZwierzeta(dt){
+  const promien = (M.trud ? M.trud.wedrowka : 2);
+  for(const z of M.zwierzeta){
+    if(z.znalezione) continue;
+    if(z.wabik){ z.wabik.t -= dt; if(z.wabik.t <= 0) z.wabik = null; }
+    z.ruch -= dt;
+    if(z.ruch > 0) continue;
+    z.ruch = z.wabik ? 24 : (100 + Math.random()*120);
+    const opcje = [[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy]) => {
+      const nx = z.x+dx, ny = z.y+dy;
+      if(nx<=0 || ny<=0 || nx>=MW-1 || ny>=MH-1) return false;
+      if(!przejezdny(M.kafle[ny*MW+nx])) return false;
+      if(z.wabik) return true;                       // za karmą idzie gdziekolwiek
+      return Math.abs(nx-z.domX) <= promien && Math.abs(ny-z.domY) <= promien;
+    });
+    if(opcje.length){
+      let w;
+      if(z.wabik){                                   // krok w stronę karmy
+        w = opcje.reduce((a,b) => {
+          const da = Math.abs(z.x+a[0]-z.wabik.x) + Math.abs(z.y+a[1]-z.wabik.y);
+          const db = Math.abs(z.x+b[0]-z.wabik.x) + Math.abs(z.y+b[1]-z.wabik.y);
+          return db < da ? b : a;
+        });
+      } else w = opcje[Math.floor(Math.random()*opcje.length)];
+      z.x += w[0]; z.y += w[1];
+    }
+  }
+}
+
+function aktualizuj(dt){
+  if(P.ruch){
+    P.ruch.t += dt/KROK;
+    if(P.ruch.t >= 1){ zakonczKrok(); }
+    else {
+      P.px = (P.ruch.x0 + (P.ruch.x1-P.ruch.x0)*P.ruch.t) * T;
+      P.py = (P.ruch.y0 + (P.ruch.y1-P.ruch.y0)*P.ruch.t) * T;
+    }
+  }
+  if(!P.ruch && !panelOtwarty){
+    if(klawisze.l || klawisze.p || klawisze.g || klawisze.d){
+      kolejka = [];
+      if(klawisze.l) sprobujKrok(-1,0);
+      else if(klawisze.p) sprobujKrok(1,0);
+      else if(klawisze.g) sprobujKrok(0,-1);
+      else if(klawisze.d) sprobujKrok(0,1);
+    } else if(kolejka.length){
+      const n = kolejka.shift();
+      if(!sprobujKrok(n.x-P.x, n.y-P.y)) kolejka = [];
+    }
+  }
+  ruszajZwierzeta(dt);
+  ustawKamere(false);
+  if(M.komunikat){ M.komunikat.t -= dt/60; if(M.komunikat.t <= 0) M.komunikat = null; }
+  if(lornetkaCzas > 0){
+    lornetkaCzas -= dt/60;
+    if(lornetkaCzas <= 0){ lornetkaCzas = 0; rysujPlecak(); }
+    else odsloniec(true);
+  }
+
+  if(++licznikHud >= 12){ licznikHud = 0; rysujTropy(); aktualizujInfo(); if(!M.zoo) rysujPlecak(); }
+  if(brudna && postep.kroki % 25 === 0){ zapiszMgle(); zapisz(); }
+}
+
+/* =========================================================
+   RYSOWANIE
+   ========================================================= */
+function rysujGracza(){
+  const sx = P.px - kam.x + T/2, sy = P.py - kam.y + T/2;
+  const bob = P.ruch ? Math.abs(Math.sin(P.ruch.t*Math.PI*2))*3 : 0;
+  ctx.save();
+  ctx.globalAlpha = .3; ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.ellipse(sx, sy+16, 13, 5, 0, 0, Math.PI*2); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.translate(sx, sy - bob); ctx.scale(P.kier, 1);
+  // plecak
+  ctx.fillStyle = '#8a5a34';
+  zaokrRect(-14, -6, 10, 15, 3);
+  // nogi
+  const rozkrok = P.ruch ? Math.sin(P.ruch.t*Math.PI*2)*4 : 0;
+  ctx.fillStyle = '#3f5a72';
+  zaokrRect(-6+rozkrok, 7, 5, 10, 2);
+  zaokrRect(1-rozkrok, 7, 5, 10, 2);
+  // tułów
+  ctx.fillStyle = '#7f9a5a';
+  zaokrRect(-8, -7, 16, 16, 5);
+  ctx.fillStyle = 'rgba(255,255,255,.18)';
+  zaokrRect(-2, -7, 4, 16, 2);
+  // ręka
+  ctx.fillStyle = '#6f8a4c';
+  zaokrRect(4, -4, 7, 5, 2);
+  // głowa
+  ctx.fillStyle = '#f0c49a';
+  ctx.beginPath(); ctx.arc(1, -14, 8, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#2a2320';
+  ctx.beginPath(); ctx.arc(5, -15, 1.6, 0, Math.PI*2); ctx.fill();
+  // kapelusz podróżnika
+  ctx.fillStyle = '#8a6a3a';
+  ctx.beginPath(); ctx.ellipse(1, -20, 14, 4, 0, 0, Math.PI*2); ctx.fill();
+  zaokrRect(-6, -28, 13, 9, 4);
+  ctx.fillStyle = 'rgba(0,0,0,.25)';
+  ctx.fillRect(-6, -22, 13, 3);
+  ctx.restore();
+}
+
+function sasiadujeZMgla(x,y){
+  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+    const nx=x+dx, ny=y+dy;
+    if(nx<0||ny<0||nx>=MW||ny>=MH) return true;
+    if(!M.mgla[ny*MW+nx]) return true;
+  }
+  return false;
+}
+
+function rysujMinimape(){
+  const s = 3, mw = MW*s, mh = MH*s, ox = W-mw-16, oy = 16;
+  ctx.fillStyle = 'rgba(6,18,12,.78)';
+  zaokrRect(ox-7, oy-7, mw+14, mh+14, 10);
+  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
+    if(!M.mgla[y*MW+x]) continue;
+    const k = M.kafle[y*MW+x];
+    ctx.fillStyle = k===WODA ? '#31708f' : k===PRZESZKODA ? '#2f4a35'
+      : k===PLOT ? '#a3763f' : k===WYBIEG ? '#9ec47f' : k===SCIEZKA ? '#cdb387' : '#7aa462';
+    ctx.fillRect(ox+x*s, oy+y*s, s, s);
+  }
+  for(const z of M.zwierzeta){
+    if(!z.znalezione) continue;
+    ctx.fillStyle = '#8ee06a';
+    ctx.fillRect(ox+z.x*s-1, oy+z.y*s-1, s+2, s+2);
+  }
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(ox+P.x*s-1, oy+P.y*s-1, s+2, s+2);
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1;
+  ctx.strokeRect(ox + Math.round(kam.x/T)*s, oy + Math.round(kam.y/T)*s, (W/T)*s, (H/T)*s);
+}
+
+function rysuj(){
+  const K = M.K;
+  ctx.fillStyle = '#08150f'; ctx.fillRect(0,0,W,H);
+  const x0 = Math.max(0, Math.floor(kam.x/T)), y0 = Math.max(0, Math.floor(kam.y/T));
+  const x1 = Math.min(MW-1, x0 + Math.ceil(W/T)), y1 = Math.min(MH-1, y0 + Math.ceil(H/T));
+
+  for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++)
+    rysujKafel(M.kafle[y*MW+x], x*T-kam.x, y*T-kam.y, x, y, K);
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+  if(M.zoo) rysujZooDodatki();
+  else {
+  // ślady
+  for(const s of M.slady){
+    if(!M.mgla[s.y*MW+s.x]) continue;
+    const z = M.zwierzeta[s.zw];
+    if(z && z.znalezione) continue;
+    const sx = s.x*T - kam.x + T/2, sy = s.y*T - kam.y + T/2;
+    if(sx < -T || sx > W+T || sy < -T || sy > H+T) continue;
+    ctx.save(); ctx.translate(sx, sy); ctx.rotate(s.obrot);
+    ctx.globalAlpha = .6; ctx.font = '23px "Segoe UI Emoji", sans-serif';
+    ctx.fillText('🐾', 0, 0); ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+
+  // przedmioty do podniesienia
+  for(const p of M.przedmioty){
+    if(p.wziety || !M.mgla[p.y*MW+p.x]) continue;
+    const sx = p.x*T - kam.x + T/2, sy = p.y*T - kam.y + T/2;
+    if(sx < -T || sx > W+T || sy < -T || sy > H+T) continue;
+    const bob = Math.sin(czas*3 + p.i)*3;
+    ctx.globalAlpha = .40; ctx.fillStyle = '#fff3c4';
+    ctx.beginPath(); ctx.arc(sx, sy+bob, 16 + Math.sin(czas*4+p.i)*1.5, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.font = '27px "Segoe UI Emoji", sans-serif';
+    ctx.fillText(PRZEDMIOTY[p.typ].em, sx, sy + bob);
+  }
+
+  // zwierzęta — widoczne z bliska albo już odkryte
+  for(const z of M.zwierzeta){
+    const dx = z.x-P.x, dy = z.y-P.y;
+    const blisko = Math.sqrt(dx*dx+dy*dy) <= zasieg() + 0.6;
+    if(!blisko && !(z.znalezione && M.mgla[z.y*MW+z.x])) continue;
+    const sx = z.x*T - kam.x + T/2, sy = z.y*T - kam.y + T/2;
+    if(sx < -T || sx > W+T || sy < -T || sy > H+T) continue;
+    const bob = Math.sin(czas*2.4 + z.i)*3;
+    if(!z.znalezione && M.trud && M.trud.poswiata){   // podpowiedź tylko w łatwiejszych krainach
+      ctx.globalAlpha = .5; ctx.fillStyle = '#ffd166';
+      ctx.beginPath(); ctx.arc(sx, sy+bob, 22 + Math.sin(czas*4)*2, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    ctx.font = '34px "Segoe UI Emoji", sans-serif';
+    if(z.f) ctx.filter = z.f;
+    ctx.fillText(z.em, sx, sy + bob);
+    ctx.filter = 'none';
+  }
+
+  }
+
+  rysujGracza();
+
+  if(M.K.noc){          // jaskinie, głębiny i mapy nocne są ciemniejsze
+    ctx.fillStyle = 'rgba(8,16,34,.34)';
+    ctx.fillRect(0,0,W,H);
+  }
+
+  if(!M.zoo){
+  // mgła wojny
+  ctx.fillStyle = '#08150f';
+  for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){
+    if(M.mgla[y*MW+x]) continue;
+    ctx.fillRect(x*T-kam.x, y*T-kam.y, T, T);
+  }
+  ctx.fillStyle = 'rgba(8,21,15,.34)';
+  for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){
+    if(!M.mgla[y*MW+x] || !sasiadujeZMgla(x,y)) continue;
+    ctx.fillRect(x*T-kam.x, y*T-kam.y, T, T);
+  }
+
+  }
+
+  rysujMinimape();
+
+  // komunikat na górze ekranu
+  if(M.komunikat){
+    const a = clamp(M.komunikat.t, 0, 1);
+    ctx.globalAlpha = a;
+    ctx.font = 'bold 19px "Segoe UI", sans-serif';
+    const szer = ctx.measureText(M.komunikat.txt).width + 40;
+    ctx.fillStyle = 'rgba(10,26,18,.9)';
+    zaokrRect(W/2 - szer/2, 18, szer, 42, 14);
+    ctx.fillStyle = '#ffd166';
+    ctx.fillText(M.komunikat.txt, W/2, 40);
+    ctx.globalAlpha = 1;
+  }
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+}
+
+function petla(ts){
+  animId = requestAnimationFrame(petla);
+  if(!M) return;
+  if(!ostatni) ostatni = ts;
+  let dt = (ts - ostatni)/16.6667; ostatni = ts;
+  dt = clamp(dt, 0, 3);
+  czas += dt/60;
+  if(!panelOtwarty && wGrze()) aktualizuj(dt);
+  rysuj();
+}
+
+/* =========================================================
+   PANEL / KOMUNIKATY
+   ========================================================= */
+const naklad = document.getElementById('naklad');
+const panelEl = document.getElementById('panel');
+
+function schowajPanel(){ naklad.classList.add('ukryj'); panelEl.innerHTML = ''; panelOtwarty = false; }
+
+function pokazZwierze(z){
+  panelOtwarty = true;
+  naklad.classList.remove('ukryj');
+  const ile = M.zwierzeta.filter(a => a.znalezione).length;
+  panelEl.innerHTML =
+    '<p style="opacity:.7;margin:0">Odkrycie ' + ile + ' z ' + ILE_ZWIERZAT + '</p>' +
+    '<div class="duzeEmoji">' + emo(z) + '</div>' +
+    '<h2>' + z.nazwa + '</h2>' +
+    '<div class="fakt">💡 ' + z.fakt + '</div>' +
+    '<div class="rzad"><button id="pDalej">Świetnie!</button>' +
+    '<button class="cichy" id="pCzytaj">🔊 Przeczytaj</button></div>';
+  mow(opisZwierza(z));
+  document.getElementById('pCzytaj').onclick = () => mow(opisZwierza(z));
+  document.getElementById('pDalej').onclick = () => {
+    cisza();
+    schowajPanel();
+    if(M.zwierzeta.every(a => a.znalezione)) pokazKoniecMapy();
+  };
+}
+
+function pokazKoniecMapy(){
+  panelOtwarty = true;
+  naklad.classList.remove('ukryj');
+  const ost = M.idx + 1 >= KRAINY.length;
+  if(postep.odblok < M.idx + 2) postep.odblok = Math.min(KRAINY.length, M.idx + 2);
+  zapiszMgle(); zapisz();
+  sfx.odkrycie();
+  panelEl.innerHTML =
+    '<div class="duzeEmoji">' + M.K.zwierzeta.map(z => z.em).join('') + '</div>' +
+    '<h2>' + M.K.nazwa + ' zbadana!</h2>' +
+    '<p>Znalazłeś wszystkie ' + ILE_ZWIERZAT + ' zwierząt. Mapa odkryta w <b>' +
+      procentOdkryty() + '%</b>.</p>' +
+    (ost ? '<p><b>To była ostatnia kraina — jesteś prawdziwym tropicielem!</b></p>'
+         : '<p>Nowa kraina do zbadania: <b>' + KRAINY[M.idx+1].nazwa + '</b></p>') +
+    '<div class="rzad">' +
+    (ost ? '' : '<button id="pNast">Rusz dalej →</button>') +
+    '<button class="drugi" id="pAlbum">📔 Album</button>' +
+    '<button class="cichy" id="pMapy">Mapa świata</button></div>';
+  const b = id => document.getElementById(id);
+  if(b('pNast')) b('pNast').onclick = () => startMapy(M.idx+1);
+  mow('Brawo! Znalazłeś wszystkie zwierzęta w krainie ' + M.K.nazwa + '. ' +
+      (ost ? 'To była ostatnia kraina. Jesteś prawdziwym tropicielem!'
+           : 'Otwiera się nowa kraina: ' + KRAINY[M.idx+1].nazwa + '.'));
+  b('pAlbum').onclick = () => { schowajPanel(); rysujAlbum(); ekran('ekranAlbum'); };
+  b('pMapy').onclick  = () => { schowajPanel(); wyjdzDoMap(); };
+}
+
+function wyjdzDoMap(){
+  if(M && !M.zoo){ zapiszMgle(); zapisz(); }
+  M = null; kolejka = [];
+  rysujKrainy();
+  ekran('ekranKrainy');
+}
+
+/* =========================================================
+   PASEK TROPIENIA I INFO
+   ========================================================= */
+function strzalka(dx, dy){
+  const a = Math.atan2(dy, dx);
+  const i = ((Math.round(a/(Math.PI/4)) % 8) + 8) % 8;
+  return ['→','↘','↓','↙','←','↖','↑','↗'][i];
+}
+
+function rysujTropy(){
+  if(!M) return;
+  const ov = document.getElementById('tropyDotyk');
+  if(M.zoo){
+    if(ov) ov.innerHTML = '';
+    const ile = Object.keys(postep.zoo).length, mozliwe = ileWybiegow();
+    document.getElementById('tropy').innerHTML =
+      '<div class="trop znaleziony" style="grid-column:1/-1"><div class="em">🏛️</div>' +
+      '<div class="txt"><div class="nz">Twoje ZOO — ' + ile + ' z ' + mozliwe + ' wybiegów zajętych</div>' +
+      '<div class="st">Kliknij wybieg albo stań przy tabliczce i naciśnij E, żeby wybrać mieszkańca.</div>' +
+      '</div></div>';
+    return;
+  }
+  document.getElementById('tropy').innerHTML = M.zwierzeta.map(z => {
+    if(z.znalezione)
+      return '<div class="trop znaleziony"><div class="em">' + emo(z) + '</div>' +
+             '<div class="txt"><div class="nz">' + z.nazwa + '</div>' +
+             '<div class="st">odkryte ✓</div></div></div>';
+    if(z.tropione){
+      const dx = z.x-P.x, dy = z.y-P.y, d = Math.abs(dx)+Math.abs(dy);
+      const opis = d <= 3 ? 'tuż obok!' : d <= 8 ? 'blisko' : d <= 16 ? 'niedaleko' : 'daleko';
+      return '<div class="trop tropiony"><div class="em">🐾</div>' +
+             '<div class="txt"><div class="nz">Tajemniczy trop</div>' +
+             '<div class="st">' + opis + '</div></div>' +
+             '<div class="strzalka">' + strzalka(dx,dy) + '</div></div>';
+    }
+    return '<div class="trop"><div class="em">❓</div>' +
+           '<div class="txt"><div class="nz">Nieznane zwierzę</div>' +
+           '<div class="st">szukaj tropów 🐾</div></div></div>';
+  }).join('');
+
+  // ta sama informacja w wersji na mapę (tablet / pełny ekran)
+  if(!ov) return;
+  ov.innerHTML = M.zwierzeta.map(z => {
+    if(z.znalezione)
+      return '<div class="chip ok"><span class="e">' + emo(z) + '</span>✓</div>';
+    if(z.tropione){
+      const dx = z.x-P.x, dy = z.y-P.y, d = Math.abs(dx)+Math.abs(dy);
+      const opis = d <= 3 ? 'tuż obok' : d <= 8 ? 'blisko' : d <= 16 ? 'niedaleko' : 'daleko';
+      return '<div class="chip trop"><span class="e">🐾</span>' + strzalka(dx,dy) +
+             '<span class="s">' + opis + '</span></div>';
+    }
+    return '<div class="chip"><span class="e">❓</span></div>';
+  }).join('');
+}
+
+function aktualizujInfo(){
+  if(!M) return;
+  if(M.zoo){
+    document.getElementById('infoMapy').textContent =
+      'Wybiegi: ' + ileWybiegow() + ' z ' + PROG_WYBIEGU.length + ' zbudowanych  •  mieszkańcy: ' +
+      Object.keys(postep.zoo).length + '  •  w albumie: ' + razemZnalezionych() + ' zwierząt';
+    return;
+  }
+  const ile = M.zwierzeta.filter(z => z.znalezione).length;
+  document.getElementById('infoMapy').textContent =
+    'Zwierzęta: ' + ile + '/' + ILE_ZWIERZAT + '  •  mapa odkryta w ' + procentOdkryty() + '%' +
+    '  •  trudność ' + M.trud.poziom + '/5  •  zasięg wzroku ' + M.trud.zasieg.toFixed(1) +
+    '  •  kroki: ' + postep.kroki;
+}
+
+/* =========================================================
+   EKRANY
+   ========================================================= */
+function ekran(id){
+  cisza();
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  window.scrollTo(0,0);
+}
+
+function rysujKrainy(){
+  odblokujZdobyte();
+  const box = document.getElementById('listaKrain');
+  box.innerHTML = KRAINY.map((K,i) => {
+    const zamk = i + 1 > postep.odblok;
+    const zn = znalezioneW(K.id);
+    const komplet = zn.length >= ILE_ZWIERZAT;
+    const ikony = K.zwierzeta.map((z,j) => zn.indexOf(j) >= 0 ? emo(z) : '<span style="opacity:.28">❔</span>').join(' ');
+    return '<div class="kraina ' + (zamk ? 'zamk' : '') + (komplet ? ' zrobiona' : '') + '" data-i="' + i + '">' +
+      (zamk ? '<div class="zamek">🔒</div>' : (komplet ? '<div class="medal">🏅</div>' : '')) +
+      '<div class="ikony">' + (zamk ? '❔ ❔ ❔ ❔ ❔' : ikony) + '</div>' +
+      '<div><div class="tyt">' + K.nazwa + '</div>' +
+      '<div class="trud" title="Trudność krainy">' + '●'.repeat(trudnosc(i).poziom) +
+        '<i>' + '●'.repeat(5 - trudnosc(i).poziom) + '</i></div>' +
+      '<div class="op">' + (zamk
+          ? 'Znajdź jeszcze ' + (ILE_ZWIERZAT - znalezioneW(KRAINY[i-1].id).length) +
+            ' zwierząt w krainie ' + KRAINY[i-1].nazwa + ', żeby tu dotrzeć.'
+          : K.opis) + '</div></div>' +
+      '<div><div class="postep">' + zn.length + ' / ' + ILE_ZWIERZAT + ' zwierząt' +
+        ((!zamk && (zn.length || postep.mgla[K.id]))
+          ? '<button class="reset" data-r="' + i + '" title="Zacznij tę krainę od nowa">↻ od nowa</button>' : '') +
+      '</div>' +
+      '<div class="pas"><i style="width:' + (zn.length/ILE_ZWIERZAT*100) + '%"></i></div></div>' +
+    '</div>';
+  }).join('');
+
+  [...box.querySelectorAll('.kraina')].forEach(el => {
+    const i = +el.dataset.i;
+    if(i + 1 > postep.odblok) return;
+    el.onclick = () => startMapy(i);
+  });
+
+  /* „od nowa" czyści tylko tę jedną krainę — mgłę, znalezione zwierzęta
+     i podniesione przedmioty. Odblokowane krainy zostają odblokowane. */
+  [...box.querySelectorAll('.reset')].forEach(b => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      const i = +b.dataset.r, K = KRAINY[i];
+      if(!confirm('Zacząć krainę ' + K.nazwa + ' od nowa?\n\nMapa znów będzie zakryta mgłą, a jej ' +
+                  ILE_ZWIERZAT + ' zwierząt trzeba będzie wytropić jeszcze raz (znikną z albumu). ' +
+                  'Reszta gry i odblokowane krainy zostają bez zmian.')) return;
+      delete postep.znalezione[K.id];
+      delete postep.mgla[K.id];
+      delete postep.zebrane[K.id];
+      zapisz(); rysujKrainy();
+      mow('Kraina ' + K.nazwa + ' czeka na ciebie od nowa.');
+    };
+  });
+
+  document.getElementById('podtytulKrain').textContent =
+    'Odkryte zwierzęta: ' + razemZnalezionych() + ' z ' + (KRAINY.length*ILE_ZWIERZAT) +
+    '  •  przebyte kroki: ' + postep.kroki;
+}
+
+function rysujAlbum(){
+  document.getElementById('podtytulAlbum').textContent =
+    razemZnalezionych() + ' z ' + (KRAINY.length*ILE_ZWIERZAT) + ' zwierząt w kolekcji';
+  document.getElementById('albumTresc').innerHTML = KRAINY.map((K, ki) => {
+    const zn = znalezioneW(K.id);
+    return '<div class="albumGrupa"><h3>' + K.nazwa +
+      ' <small>' + zn.length + '/' + ILE_ZWIERZAT + '</small>' +
+      (zn.length ? '<button class="czytaj" data-k="' + ki + '">🔊 czytaj krainę</button>' : '') +
+      '</h3><div class="karty">' +
+      K.zwierzeta.map((z,j) => {
+        const mam = zn.indexOf(j) >= 0;
+        return '<div class="zw ' + (mam ? '' : 'brak') + '"' +
+          (mam ? ' data-k="' + ki + '" data-i="' + j + '" style="cursor:pointer"' : '') + '>' +
+          (mam ? '<button class="czytaj" data-k="' + ki + '" data-i="' + j + '" title="Przeczytaj">🔊</button>' : '') +
+          '<div class="em">' + (mam ? emo(z) : '❔') + '</div>' +
+          '<div class="nz">' + (mam ? z.nazwa : '???') + '</div>' +
+          (mam ? '<div class="fk">' + z.fakt + '</div>' : '<div class="fk">jeszcze nieodkryte</div>') +
+        '</div>';
+      }).join('') + '</div></div>';
+  }).join('');
+
+  [...document.querySelectorAll('#albumTresc .zw[data-k]')].forEach(k => {
+    k.onclick = () => mow(opisZwierza(KRAINY[+k.dataset.k].zwierzeta[+k.dataset.i]));
+  });
+  [...document.querySelectorAll('#albumTresc .czytaj')].forEach(b => {
+    b.onclick = () => {
+      const K = KRAINY[+b.dataset.k];
+      if(b.dataset.i !== undefined){
+        mow(opisZwierza(K.zwierzeta[+b.dataset.i]));
+      } else {
+        mowWiele(znalezioneW(K.id).map(i => opisZwierza(K.zwierzeta[i])));
+      }
+    };
+  });
+}
+
+/* =========================================================
+   EKWIPUNEK TROPICIELA
+   ========================================================= */
+function kierunekSlownie(dx, dy){
+  const a = Math.atan2(dy, dx);
+  const i = ((Math.round(a/(Math.PI/4)) % 8) + 8) % 8;
+  return ['wschodzie','południowym wschodzie','południu','południowym zachodzie',
+          'zachodzie','północnym zachodzie','północy','północnym wschodzie'][i];
+}
+
+function najblizsze(warunek){
+  return M.zwierzeta
+    .filter(z => !z.znalezione && warunek(z))
+    .sort((a,b) => (Math.abs(a.x-P.x)+Math.abs(a.y-P.y)) - (Math.abs(b.x-P.x)+Math.abs(b.y-P.y)))[0];
+}
+
+function uzyj(typ){
+  if(!M || M.zoo || panelOtwarty || !P) return;
+  if(!(postep.plecak[typ] > 0)) return;
+  let zuzyte = true;
+
+  if(typ === 'lornetka'){
+    lornetkaCzas = 25;
+    odsloniec(true);
+    M.komunikat = {txt:'🔭  Patrzysz przez lornetkę — widzisz dużo dalej!', t:2.8};
+
+  } else if(typ === 'mapa'){
+    for(let dy=-9;dy<=9;dy++) for(let dx=-9;dx<=9;dx++){
+      if(dx*dx + dy*dy > 81) continue;
+      const x = P.x+dx, y = P.y+dy;
+      if(x<0||y<0||x>=MW||y>=MH) continue;
+      M.mgla[y*MW+x] = 1;
+    }
+    brudna = true;
+    odsloniec(false);
+    zapiszMgle(); zapisz();
+    M.komunikat = {txt:'🗺️  Rozkładasz mapę — okolica odsłonięta.', t:2.8};
+
+  } else if(typ === 'kompas'){
+    const cel = najblizsze(z => !z.tropione);
+    if(!cel){
+      M.komunikat = {txt:'🧭  Igła stoi spokojnie — tropisz już wszystkie zwierzęta.', t:3};
+      zuzyte = false;
+    } else {
+      cel.tropione = true; sfx.trop();
+      M.komunikat = {txt:'🧭  Igła drgnęła! Coś jest na ' + kierunekSlownie(cel.x-P.x, cel.y-P.y) + '.', t:3.2};
+    }
+
+  } else if(typ === 'karma'){
+    const cel = najblizsze(z => Math.abs(z.x-P.x) + Math.abs(z.y-P.y) <= 16);
+    if(!cel){
+      M.komunikat = {txt:'🍎  Zostawiasz karmę, ale w pobliżu nikogo nie ma…', t:3};
+      zuzyte = false;
+    } else {
+      cel.wabik = {x:P.x, y:P.y, t:900};
+      cel.tropione = true; cel.ruch = 0;
+      M.komunikat = {txt:'🍎  Karma leży na ziemi… coś się zbliża!', t:3.2};
+    }
+  }
+
+  if(zuzyte){ postep.plecak[typ]--; zapisz(); }
+  if(M.komunikat) mow(M.komunikat.txt);
+  rysujPlecak(); rysujTropy();
+}
+
+function rysujPlecak(){
+  const box = document.getElementById('plecak');
+  if(!box) return;
+  box.innerHTML = TYPY_PRZEDMIOTOW.map((t,i) => {
+    const ile = postep.plecak[t] || 0;
+    const dziala = (t === 'lornetka' && lornetkaCzas > 0);
+    return '<button class="rzecz' + (ile ? '' : ' pusta') + (dziala ? ' dziala' : '') + '"' +
+      ' data-typ="' + t + '"' + (ile ? '' : ' disabled') + '>' +
+      '<span class="em">' + PRZEDMIOTY[t].em + '</span>' +
+      '<span class="op"><b>' + PRZEDMIOTY[t].nazwa + '</b><small>' +
+        (dziala ? 'działa jeszcze ' + Math.ceil(lornetkaCzas) + ' s' : PRZEDMIOTY[t].opis) +
+      '</small></span>' +
+      '<span class="ile">' + ile + '</span>' +
+      '<span class="kl">' + (i+1) + '</span></button>';
+  }).join('');
+  [...box.querySelectorAll('.rzecz')].forEach(b => b.onclick = () => uzyj(b.dataset.typ));
+
+  const dot = document.getElementById('plecakDotyk');
+  if(!dot) return;
+  dot.innerHTML = TYPY_PRZEDMIOTOW.map(t => {
+    const ile = postep.plecak[t] || 0;
+    const dziala = (t === 'lornetka' && lornetkaCzas > 0);
+    return '<button class="rzeczD' + (ile ? '' : ' pusta') + (dziala ? ' dziala' : '') + '"' +
+      ' data-typ="' + t + '"' + (ile ? '' : ' disabled') +
+      ' title="' + PRZEDMIOTY[t].nazwa + '">' +
+      '<span class="e">' + PRZEDMIOTY[t].em + '</span>' +
+      '<span class="n">' + ile + '</span></button>';
+  }).join('');
+  [...dot.querySelectorAll('.rzeczD')].forEach(b => b.onclick = () => uzyj(b.dataset.typ));
+}
+
+/* =========================================================
+   MOJE ZOO
+   ========================================================= */
+const ZOO_K = {
+  id:'zoo', nazwa:'Moje ZOO',
+  trawa:['#77a85c','#6d9e53'], krzak:'#4f7a3c', drzewo:'#3d6b34', pien:'#5a3f27',
+  woda:'#3f8fb0', skala:'#8a9080', rodzaj:'swierk', zwierzeta:[]
+};
+/* ile zwierząt trzeba mieć w albumie, żeby otworzyć kolejny wybieg */
+const PROG_WYBIEGU = [0, 0, 0, 2, 4, 7, 10, 14, 18, 23, 28, 34];
+
+function ileWybiegow(){
+  const zn = razemZnalezionych();
+  let ile = 0;
+  for(const prog of PROG_WYBIEGU) if(zn >= prog) ile++;
+  return ile;
+}
+
+function zwierzeWSlocie(slot){
+  const w = postep.zoo[slot];
+  if(!w) return null;
+  const K = KRAINY[w.k];
+  if(!K || !K.zwierzeta[w.i]) return null;
+  return Object.assign({}, K.zwierzeta[w.i], {kraina:K.nazwa});
+}
+
+function budujZoo(){
+  const kafle = new Uint8Array(MW*MH);
+  for(let i=0;i<kafle.length;i++) kafle[i] = TRAWA;
+  for(let x=0;x<MW;x++){ kafle[x] = PRZESZKODA; kafle[(MH-1)*MW+x] = PRZESZKODA; }
+  for(let y=0;y<MH;y++){ kafle[y*MW] = PRZESZKODA; kafle[y*MW+MW-1] = PRZESZKODA; }
+
+  // 12 wybiegów 6x5 w siatce 4 x 3
+  const wybiegi = [];
+  for(let r=0;r<3;r++) for(let c=0;c<4;c++){
+    const x0 = 3 + c*9, y0 = 3 + r*8;
+    for(let y=y0;y<y0+5;y++) for(let x=x0;x<x0+6;x++){
+      const brzeg = (x===x0 || x===x0+5 || y===y0 || y===y0+4);
+      kafle[y*MW+x] = brzeg ? PLOT : WYBIEG;
+    }
+    wybiegi.push({slot:r*4+c, x0, y0, w:6, h:5, tabX:x0+3, tabY:y0+5});
+  }
+
+  // alejki
+  const alejka = (x,y) => {
+    if(x>0 && y>0 && x<MW-1 && y<MH-1 && kafle[y*MW+x] === TRAWA) kafle[y*MW+x] = SCIEZKA;
+  };
+  const kolumny = [2, 9,10, 18,19, 27,28, 36,37];
+  const wiersze = [2, 8,9, 16,17, 24,25];
+  for(let y=1;y<MH-1;y++) for(const x of kolumny) alejka(x,y);
+  for(let x=1;x<MW-1;x++) for(const y of wiersze) alejka(x,y);
+
+  // zieleń dekoracyjna na resztkach trawy
+  for(let y=1;y<MH-1;y++) for(let x=1;x<MW-1;x++){
+    if(kafle[y*MW+x] !== TRAWA) continue;
+    const h = hash2(x*3+1, y*7+5);
+    if(h > 0.90) kafle[y*MW+x] = PRZESZKODA;
+    else if(h > 0.78) kafle[y*MW+x] = KRZAK;
+  }
+  return {kafle, wybiegi};
+}
+
+function startZoo(){
+  const {kafle, wybiegi} = budujZoo();
+  const mgla = new Uint8Array(MW*MH);
+  for(let i=0;i<mgla.length;i++) mgla[i] = 1;          // w zoo widać wszystko
+  M = {zoo:true, idx:-1, K:ZOO_K, kafle, wybiegi, mgla,
+       zwierzeta:[], slady:[], przedmioty:[], komunikat:null, celWybieg:null, podpowiedz:null};
+  P = {x:19, y:25, px:19*T, py:25*T, kier:1, ruch:null};
+  kolejka = [];
+  panelOtwarty = false;
+  schowajPanel();
+  ustawKamere(true);
+  sprawdzTabliczke();
+  document.getElementById('tytulMapy').textContent = '🏛️ Moje ZOO';
+  document.getElementById('plecak').style.display = 'none';
+  document.getElementById('plecakDotyk').style.display = 'none';
+  ekran('ekranGry');
+  rysujTropy(); aktualizujInfo();
+  sfx.mapa();
+  ostatni = 0;
+  if(!animId) animId = requestAnimationFrame(petla);
+}
+
+/* czy stoimy przed tabliczką któregoś wybiegu */
+function sprawdzTabliczke(){
+  M.podpowiedz = null;
+  for(const w of M.wybiegi){
+    if(P.x === w.tabX && P.y === w.tabY){
+      M.podpowiedz = w.slot;
+      if(M.celWybieg === w.slot || dotyk){ M.celWybieg = null; otworzWybieg(w.slot); }
+      return;
+    }
+  }
+}
+
+function rysujZooDodatki(){
+  const otwartych = ileWybiegow();
+  for(const w of M.wybiegi){
+    const cx = (w.x0 + w.w/2)*T - kam.x, cy = (w.y0 + w.h/2)*T - kam.y;
+    if(cx < -220 || cx > W+220) continue;
+    const otwarty = w.slot < otwartych;
+
+    if(!otwarty){
+      ctx.globalAlpha = .85;
+      ctx.font = '34px "Segoe UI Emoji", sans-serif';
+      ctx.fillText('🚧', cx, cy - 6);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = 'rgba(255,255,255,.75)';
+      ctx.font = 'bold 12px "Segoe UI", sans-serif';
+      ctx.fillText('w budowie', cx, cy + 22);
+    } else {
+      const z = zwierzeWSlocie(w.slot);
+      if(z){
+        ctx.font = '42px "Segoe UI Emoji", sans-serif';
+        if(z.f) ctx.filter = z.f;
+        ctx.fillText(z.em, cx, cy + Math.sin(czas*2 + w.slot)*3);
+        ctx.filter = 'none';
+        ctx.fillStyle = 'rgba(255,255,255,.85)';
+        ctx.font = 'bold 12px "Segoe UI", sans-serif';
+        ctx.fillText(z.nazwa, cx, cy + 32);
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,.5)';
+        ctx.font = 'bold 13px "Segoe UI", sans-serif';
+        ctx.fillText('wolny wybieg', cx, cy);
+      }
+    }
+
+    // tabliczka przy alejce
+    const tx = w.tabX*T - kam.x + T/2, ty = w.tabY*T - kam.y + T/2;
+    ctx.fillStyle = '#7a5a30';
+    ctx.fillRect(tx-2, ty-4, 4, 14);
+    ctx.fillStyle = otwarty ? '#e0b76a' : '#8f8f8f';
+    zaokrRect(tx-17, ty-18, 34, 17, 5);
+    ctx.fillStyle = '#3a2a12';
+    ctx.font = 'bold 12px "Segoe UI", sans-serif';
+    ctx.fillText(otwarty ? ('nr ' + (w.slot+1)) : '🔒', tx, ty-9);
+  }
+
+  if(M.podpowiedz != null){
+    const txt = (dotyk ? 'Dotknij wybiegu nr ' : 'Naciśnij  E  —  wybieg nr ') + (M.podpowiedz+1);
+    ctx.font = 'bold 18px "Segoe UI", sans-serif';
+    const szer = ctx.measureText(txt).width + 44;
+    ctx.fillStyle = 'rgba(10,26,18,.92)';
+    zaokrRect(W/2 - szer/2, H-74, szer, 44, 14);
+    ctx.fillStyle = '#ffd166';
+    ctx.fillText(txt, W/2, H-51);
+  }
+}
+
+function otworzWybieg(slot){
+  if(slot >= ileWybiegow()){
+    const brakuje = PROG_WYBIEGU[slot] - razemZnalezionych();
+    M.komunikat = {txt:'🚧  Ten wybieg jest w budowie — wytrop jeszcze ' + brakuje + ' zwierząt.', t:3.4};
+    mow('Ten wybieg jest jeszcze w budowie. Wytrop jeszcze ' + brakuje + ' ' +
+        odmiana(brakuje,'zwierzę','zwierzęta','zwierząt') + '.');
+    sfx.blok();
+    return;
+  }
+  panelOtwarty = true;
+  naklad.classList.remove('ukryj');
+
+  const obecne = zwierzeWSlocie(slot);
+  const wszystkie = [];
+  KRAINY.forEach((K, ki) => znalezioneW(K.id).forEach(zi => wszystkie.push({ki, zi, z:K.zwierzeta[zi]})));
+  const gdzieMieszka = {};
+  Object.keys(postep.zoo).forEach(sl => {
+    const w = postep.zoo[sl];
+    if(w) gdzieMieszka[w.k + '_' + w.i] = +sl;
+  });
+
+  panelEl.innerHTML =
+    '<h2>🏛️ Wybieg nr ' + (slot+1) + '</h2>' +
+    (obecne ? '<p>Mieszka tu: <b>' + obecne.em + ' ' + obecne.nazwa + '</b></p>'
+            : '<p>Wybieg jest pusty. Wybierz mieszkańca ze swojego albumu.</p>') +
+    (wszystkie.length
+      ? '<div class="wyborZw">' + wszystkie.map(a => {
+          const gdzie = gdzieMieszka[a.ki + '_' + a.zi];
+          const tutaj = gdzie === slot;
+          return '<button class="zwBtn' + (tutaj ? ' tu' : (gdzie != null ? ' zajete' : '')) + '"' +
+            ' data-k="' + a.ki + '" data-i="' + a.zi + '">' +
+            '<span class="em">' + emo(a.z) + '</span>' +
+            '<span class="nz">' + a.z.nazwa + '</span>' +
+            (gdzie != null ? '<span class="gdzie">' + (tutaj ? 'tutaj' : 'wybieg ' + (gdzie+1)) + '</span>' : '') +
+          '</button>';
+        }).join('') + '</div>'
+      : '<p>Twój album jest jeszcze pusty — wytrop pierwsze zwierzę i wróć tutaj!</p>') +
+    '<div class="rzad">' +
+    (obecne ? '<button class="cichy" id="zOproznij">Zabierz zwierzę</button>' : '') +
+    '<button class="drugi" id="zZamknij">Zamknij</button></div>';
+
+  [...panelEl.querySelectorAll('.zwBtn')].forEach(b => {
+    b.onclick = () => {
+      const k = +b.dataset.k, i = +b.dataset.i;
+      // jedno zwierzę może mieszkać tylko w jednym wybiegu
+      Object.keys(postep.zoo).forEach(sl => {
+        const w = postep.zoo[sl];
+        if(w && w.k === k && w.i === i) delete postep.zoo[sl];
+      });
+      postep.zoo[slot] = {k, i};
+      zapisz(); sfx.odkrycie();
+      const z = KRAINY[k].zwierzeta[i];
+      schowajPanel();
+      M.komunikat = {txt:'🏛️  ' + z.em + '  ' + z.nazwa + ' wprowadza się na wybieg nr ' + (slot+1) + '!', t:3.4};
+      mow(z.nazwa + ' wprowadza się na wybieg numer ' + (slot+1) + '.');
+      rysujTropy(); aktualizujInfo();
+    };
+  });
+  const b = id => document.getElementById(id);
+  if(b('zOproznij')) b('zOproznij').onclick = () => {
+    delete postep.zoo[slot]; zapisz(); schowajPanel();
+    rysujTropy(); aktualizujInfo();
+  };
+  b('zZamknij').onclick = () => schowajPanel();
+}
+
+/* =========================================================
+   STEROWANIE
+   ========================================================= */
+const wGrze = () => document.getElementById('ekranGry').classList.contains('on');
+
+/* ---------- TABLET / DOTYK ---------- */
+const mm = q => !!(window.matchMedia && window.matchMedia(q).matches);
+/* tablet = główny wskaźnik jest „gruby" (palec) i nie ma podłączonej myszy */
+const dotykAuto = (mm('(pointer: coarse)') && !mm('(any-pointer: fine)')) ||
+                  (!window.matchMedia && 'ontouchstart' in window);
+let dotyk = dotykAuto;
+
+/* gracz może wymusić swój tryb — ten sam plik obsługuje komputer i tablet */
+function ustawSterowanie(){
+  dotyk = (postep.sterowanie === 'dotyk') ? true
+        : (postep.sterowanie === 'klawiatura') ? false
+        : dotykAuto;
+  document.body.classList.toggle('dotyk', dotyk);
+  const b = document.getElementById('btnDotyk');
+  if(b) b.textContent = dotyk ? '👆 Sterowanie: dotyk' : '⌨️ Sterowanie: klawiatura';
+  document.querySelectorAll('.pod').forEach(p => {
+    p.innerHTML = dotyk
+      ? 'Chodź krzyżakiem po prawej stronie mapy &nbsp;•&nbsp; ekwipunek dotknij po lewej ' +
+        '&nbsp;•&nbsp; w ZOO podejdź do wybiegu, a sam się otworzy'
+      : 'Chodź <kbd>strzałkami</kbd> lub <kbd>WSAD</kbd> &nbsp;•&nbsp; ekwipunek na klawiszach ' +
+        '<kbd>1</kbd>–<kbd>4</kbd> &nbsp;•&nbsp; w ZOO <kbd>E</kbd> otwiera wybieg';
+  });
+}
+
+/* krzyżak kierunkowy steruje tym samym mechanizmem co klawisze */
+[...document.querySelectorAll('#dpad button')].forEach(b => {
+  const k = b.dataset.kier;
+  const wcisnij = e => { e.preventDefault(); klawisze[k] = true; };
+  const pusc    = e => { e.preventDefault(); klawisze[k] = false; };
+  b.addEventListener('pointerdown', wcisnij);
+  b.addEventListener('pointerup', pusc);
+  b.addEventListener('pointerleave', pusc);
+  b.addEventListener('pointercancel', pusc);
+});
+
+/* pełny ekran — na tablecie chowa paski przeglądarki */
+const btnPE = document.getElementById('btnPelnyEkran');
+if(!document.documentElement.requestFullscreen) btnPE.style.display = 'none';
+btnPE.onclick = () => {
+  try{
+    if(document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+  }catch(e){}
+};
+
+document.getElementById('btnDotyk').onclick = () => {
+  postep.sterowanie = dotyk ? 'klawiatura' : 'dotyk';
+  zapisz(); ustawSterowanie();
+};
+
+const MAPA_KLAWISZY = {
+  ArrowLeft:'l', KeyA:'l', ArrowRight:'p', KeyD:'p',
+  ArrowUp:'g', KeyW:'g', ArrowDown:'d', KeyS:'d'
+};
+window.addEventListener('keydown', e => {
+  const k = MAPA_KLAWISZY[e.code];
+  if(k && wGrze()){ e.preventDefault(); klawisze[k] = true; }
+  if(e.code === 'Escape' && document.getElementById('ekranGry').classList.contains('on')){
+    if(panelOtwarty) schowajPanel(); else wyjdzDoMap();
+  }
+  if(!M || panelOtwarty || !wGrze()) return;
+  if(e.code === 'KeyE' && M.zoo && M.podpowiedz != null) otworzWybieg(M.podpowiedz);
+  const nr = {Digit1:0, Digit2:1, Digit3:2, Digit4:3, Numpad1:0, Numpad2:1, Numpad3:2, Numpad4:3}[e.code];
+  if(nr != null) uzyj(TYPY_PRZEDMIOTOW[nr]);
+});
+window.addEventListener('keyup', e => {
+  const k = MAPA_KLAWISZY[e.code];
+  if(k) klawisze[k] = false;
+});
+window.addEventListener('blur', () => { klawisze.l = klawisze.p = klawisze.g = klawisze.d = false; });
+
+cv.addEventListener('pointerdown', e => {
+  if(!M || panelOtwarty) return;
+  const r = cv.getBoundingClientRect();
+  const mx = (e.clientX - r.left) * (W / r.width) + kam.x;
+  const my = (e.clientY - r.top)  * (H / r.height) + kam.y;
+  const cx = Math.floor(mx/T), cy = Math.floor(my/T);
+  if(cx<0||cy<0||cx>=MW||cy>=MH) return;
+
+  if(M.zoo){    // kliknięcie w wybieg = idź do jego tabliczki i otwórz
+    const w = M.wybiegi.find(w => cx >= w.x0 && cx < w.x0+w.w && cy >= w.y0 && cy < w.y0+w.h);
+    if(w){
+      if(P.x === w.tabX && P.y === w.tabY){ otworzWybieg(w.slot); return; }
+      const dr = znajdzDroge(M.kafle, P.x, P.y, w.tabX, w.tabY);
+      if(dr && dr.length){ kolejka = dr; M.celWybieg = w.slot; }
+      return;
+    }
+  }
+  // po mapie chodzi się wyłącznie strzałkami — dotknięcie terenu nic nie robi,
+  // dzięki temu trzeba samemu wybierać drogę między drzewami i wodą
+});
+
+/* przyciski */
+document.getElementById('btnDoKrain').onclick   = () => wyjdzDoMap();
+document.getElementById('btnAlbum').onclick     = () => { rysujAlbum(); ekran('ekranAlbum'); };
+document.getElementById('btnZoo').onclick       = () => startZoo();
+
+/* lektor */
+function odswiezLektor(){
+  document.getElementById('btnLektor').textContent = lektorWl ? '🔊 Lektor: włączony' : '🔇 Lektor: wyłączony';
+}
+document.getElementById('btnLektor').onclick = () => {
+  lektorWl = !lektorWl;
+  postep.lektor = lektorWl;
+  if(!lektorWl) cisza();
+  else mow('Lektor włączony. Będę czytać ciekawostki o zwierzętach.');
+  zapisz(); odswiezLektor();
+};
+document.getElementById('btnCzytajAlbum').onclick = () => {
+  const teksty = [];
+  KRAINY.forEach(K => {
+    const zn = znalezioneW(K.id);
+    if(!zn.length) return;
+    teksty.push('Kraina: ' + K.nazwa + '.');
+    zn.forEach(i => teksty.push(opisZwierza(K.zwierzeta[i])));
+  });
+  if(!teksty.length) mow('Album jest jeszcze pusty. Wytrop pierwsze zwierzę!');
+  else mowWiele(teksty);
+};
+document.getElementById('btnStopLektor').onclick = () => cisza();
+document.getElementById('wyborGlosu').onchange = (e) => {
+  const g = listaGlosow().find(v => v.name === e.target.value);
+  if(!g) return;
+  glosPL = g; postep.glos = g.name; zapisz();
+  mow('Cześć! Tak będę czytać ciekawostki o zwierzętach.');
+};
+document.getElementById('btnProbaGlosu').onclick = () =>
+  mow('Żyrafa ma w szyi dokładnie tyle samo kręgów co ty. Siedem, tylko dużo dłuższych.');
+document.getElementById('btnZooZAlbumu').onclick= () => startZoo();
+document.getElementById('btnAlbumWroc').onclick = () => { rysujKrainy(); ekran('ekranKrainy'); };
+document.getElementById('btnResetGry').onclick  = () => {
+  if(confirm('Zacząć od nowa? Album, odkryte mapy i postęp zostaną wyczyszczone.')){
+    postep = { odblok:1, znalezione:{}, mgla:{}, kroki:0,
+               plecak:{lornetka:1, kompas:1, karma:1, mapa:1}, zebrane:{}, zoo:{} };
+    zapisz(); rysujKrainy();
+  }
+};
+
+/* start */
+ustawSterowanie();
+odswiezLektor();
+odswiezListeGlosow();
+szukajGlosu();
+rysujKrainy();
+</script>
+</body>
+</html>

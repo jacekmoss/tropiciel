@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tropiciel">
+<meta name="theme-color" content="#14301F">
+<title>Tropiciel</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-512.png">
+<style>
+  /* menu dla dziecka: dwa duże obrazkowe przyciski, las i morze; bez zewnętrznych czcionek, żeby działało offline */
+  :root {
+    --forest: #2F6B45; --forest-deep: #0F2A1C;
+    --sea: #145C86; --sea-deep: #05213A;
+    --sun: #FFD166; --ink: #F3FBF5;
+    --face: "Segoe UI Rounded", "Segoe UI", Nunito, system-ui, -apple-system, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: linear-gradient(180deg, #14301F 0%, #0A1A2A 100%);
+    color: var(--ink); font-family: var(--face);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh;
+    padding-block: max(20px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+  }
+  h1 {
+    margin: 0; font-size: clamp(44px, 9vmin, 88px); font-weight: 800; letter-spacing: .02em;
+    color: var(--sun); text-shadow: 0 4px 0 rgba(0,0,0,.25);
+  }
+  .games { display: flex; gap: 4vmin; width: min(100%, 1000px); }
+  .game {
+    flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2vmin;
+    text-decoration: none; color: var(--ink);
+    border-radius: 32px; padding: 3vmin 3vmin 4vmin;
+    border: 3px solid rgba(255,255,255,.18);
+    box-shadow: 0 14px 30px rgba(0,0,0,.35);
+    transition: transform .15s ease;
+  }
+  .game:active { transform: scale(.96); }
+  .game:focus-visible { outline: 4px solid var(--sun); outline-offset: 4px; }
+  .game.forest { background: linear-gradient(180deg, var(--forest) 0%, var(--forest-deep) 100%); }
+  .game.sea { background: linear-gradient(180deg, var(--sea) 0%, var(--sea-deep) 100%); }
+  .game svg { width: 100%; max-width: 100%; height: auto; aspect-ratio: 4 / 3; }
+  .game span { font-size: clamp(22px, 4.6vmin, 40px); font-weight: 700; text-align: center; }
+  @media (orientation: portrait) {
+    .games { flex-direction: column; width: min(100%, 520px); }
+    .game { flex-direction: row; padding: 3vmin; }
+    .game svg { width: 45%; }
+    .game span { flex: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) { .game { transition: none; } }
+</style>
+</head>
+<body>
+  <h1>Tropiciel</h1>
+  <nav class="games">
+    <a class="game forest" href="zwierzeta/">
+      <svg viewBox="0 0 160 120" aria-hidden="true">
+        <circle cx="128" cy="24" r="12" fill="#FFD166"/>
+        <path d="M0 96 L22 40 L44 96Z M30 96 L56 28 L82 96Z M112 96 L134 46 L156 96Z" fill="#1A4A2E"/>
+        <rect x="0" y="94" width="160" height="26" fill="#3E7A3A"/>
+        <g fill="#FFF6DD" transform="translate(98 82)">
+          <ellipse cx="0" cy="8" rx="12" ry="10"/>
+          <ellipse cx="-14" cy="-6" rx="5" ry="6.5"/><ellipse cx="-5" cy="-14" rx="5" ry="6.5"/>
+          <ellipse cx="6" cy="-14" rx="5" ry="6.5"/><ellipse cx="15" cy="-6" rx="5" ry="6.5"/>
+        </g>
+      </svg>
+      <span>Tropiciel Zwierząt</span>
+    </a>
+    <a class="game sea" href="pod-woda/">
+      <svg viewBox="0 0 160 120" aria-hidden="true">
+        <path d="M0 22 Q20 14 40 22 T80 22 T120 22 T160 22" fill="none" stroke="#7FD3F0" stroke-width="3"/>
+        <g transform="translate(78 64)">
+          <path d="M-30 0 L-46 -14 L-42 0 L-46 14Z" fill="#B9503A"/>
+          <path d="M34 0 C22 -20 -8 -22 -32 0 C-8 22 22 20 34 0Z" fill="#E8775A"/>
+          <circle cx="20" cy="-4" r="3.5" fill="#10232E"/>
+        </g>
+        <circle cx="122" cy="52" r="5" fill="none" stroke="#BFE9F8" stroke-width="2"/>
+        <circle cx="130" cy="38" r="3.5" fill="none" stroke="#BFE9F8" stroke-width="2"/>
+        <path d="M20 120 C18 104 26 96 22 84 M34 120 C36 106 30 100 34 90" stroke="#2F8A7C" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <rect x="0" y="108" width="160" height="12" fill="#D8C49A"/>
+      </svg>
+      <span>Tropiciel Pod Wodą</span>
+    </a>
+  </nav>
+  <script>
+    // działanie bez internetu (tylko przez http/https, nie z pliku otwartego dwuklikiem)
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+  </script>
+</body>
+</html>
