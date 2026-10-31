@@ -1486,5 +1486,8 @@ initVoices();
 setTimeout(initVoices, 500);
 setTimeout(initVoices, 1500);
 </script>
+  <!-- domek: powrót do wyboru gier (https://jacekmoss.github.io/), widoczny tylko w menu gry -->
+  <script>window.gryHomeVisible = () => { const e = document.getElementById('menuScreen'); return !e || e.classList.contains('active'); };</script>
+  <script src="/home.js" data-corner="tl" defer></script>
 </body>
 </html>
